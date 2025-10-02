@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:padding="16dp">
+
+    <!-- Dashboard Title -->
+    <TextView
+        android:id="@+id/dashboardTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DASHBOARD"
+        android:textColor="#FF0000"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Line Chart Section -->
+    <TextView
+        android:id="@+id/lineChartTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="My First Dataset"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="#FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Pie Chart Section -->
+    <TextView
+        android:id="@+id/pieChartTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Consolacion Chart"
+        android:textColor="#333333"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pieChart"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:background="#FFFFFF"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Municipality Spinner -->
+    <Spinner
+        android:id="@+id/municipalitySpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/btn_dropdown"
+        android:padding="8dp" />
+</LinearLayout>

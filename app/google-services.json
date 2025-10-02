@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "237536681426",
+    "project_id": "healthradar-c8085",
+    "storage_bucket": "healthradar-c8085.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237536681426:android:7906748cb7b52ec3607c0b",
+        "android_client_info": {
+          "package_name": "com.capstone.healthradar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoglmWYJnmiKj8uHcJAluGllIxGRmx9vU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

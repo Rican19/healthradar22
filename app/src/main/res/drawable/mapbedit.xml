@@ -1,0 +1,6 @@
+<ImageButton android:id="@+id/mapb"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/mapb"
+    android:background="@null"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

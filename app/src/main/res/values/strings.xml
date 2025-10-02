@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HealthRadar</string>
+    <string name="line_chart_desc">Line chart showing disease cases over time</string>
+    <string name="pie_chart_desc">Pie chart showing distribution of cases by disease</string>
+</resources>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- FrameLayout to overlay legend on map -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Legend overlay -->
+        <LinearLayout
+            android:id="@+id/legendLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:background="#CCFFFFFF"
+            android:elevation="4dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp">
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Municipality Panels -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:weightSum="3">
+
+        <!-- Mandaue -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="4dp">
+            <TextView
+                android:id="@+id/tv_mandaue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mandaue"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:gravity="center"/>
+            <Spinner
+                android:id="@+id/spinner_mandaue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </LinearLayout>
+
+        <!-- Consolacion -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="4dp">
+            <TextView
+                android:id="@+id/tv_consolacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Consolacion"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:gravity="center"/>
+            <Spinner
+                android:id="@+id/spinner_consolacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </LinearLayout>
+
+        <!-- Liloan -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="4dp">
+            <TextView
+                android:id="@+id/tv_liloan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Liloan"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:gravity="center"/>
+            <Spinner
+                android:id="@+id/spinner_liloan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

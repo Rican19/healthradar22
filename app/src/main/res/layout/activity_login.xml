@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingHorizontal="30dp"
+    android:paddingTop="100dp"
+    android:background="@color/white"
+    tools:context=".LoginActivity">
+
+    <!-- Welcome Title -->
+    <TextView
+        android:id="@+id/welcomeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WELCOME USER"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:textColor="@color/red"
+        android:layout_gravity="start" />
+
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Login to continue"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/rose"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="start" />
+
+    <!-- Email Input -->
+    <EditText
+        android:id="@+id/emailEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="32dp"
+        android:hint="EMAIL"
+        android:inputType="textEmailAddress"
+        android:background="@drawable/shapes"
+        android:textStyle="bold"
+        android:paddingStart="16dp" />
+
+    <!-- Password Input -->
+    <EditText
+        android:id="@+id/passwordEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:hint="PASSWORD"
+        android:inputType="textPassword"
+        android:background="@drawable/shapes"
+        android:textStyle="bold"
+        android:paddingStart="16dp" />
+
+    <!-- Login Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="32dp">
+
+        <Button
+            android:id="@+id/LoginButton"
+            android:layout_width="120dp"
+            android:layout_height="48dp"
+            android:text="Login"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/button" />
+    </LinearLayout>
+
+    <!-- Register Link -->
+    <TextView
+        android:id="@+id/Register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/red"
+        android:layout_marginTop="40dp"
+        android:layout_gravity="center" />
+</LinearLayout>
