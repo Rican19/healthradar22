@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dp"
+    android:background="#FFFFFF"
+    android:layout_marginBottom="4dp">
+
+    <TextView
+        android:id="@+id/tvDiseaseName"
+        android:layout_width="154dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Disease"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvCases"
+        android:layout_width="66dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingRight="10dp"
+        android:text="Cases"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvMunicipality"
+        android:layout_width="94dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Municipality"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="89dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Date"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+</LinearLayout>

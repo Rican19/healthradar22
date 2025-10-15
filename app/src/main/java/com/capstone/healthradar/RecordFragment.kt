@@ -8,7 +8,6 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QueryDocumentSnapshot
 
 class RecordFragment : Fragment() {
 
@@ -16,10 +15,10 @@ class RecordFragment : Fragment() {
     private lateinit var spinnerMunicipality: Spinner
     private lateinit var firestore: FirebaseFirestore
 
-    private val diseaseList = mutableListOf<String>()
-    private lateinit var diseaseAdapter: ArrayAdapter<String>
+    // Use the single CaseItem defined in CaseItem.kt
+    private val caseList = mutableListOf<CaseItem>()
+    private lateinit var adapter: CaseListAdapter
 
-    // 🔹 Match Firestore exactly
     private val municipalities = listOf("All", "Lilo-an", "Consolacion", "Mandaue")
 
     override fun onCreateView(
@@ -30,15 +29,13 @@ class RecordFragment : Fragment() {
 
         listViewDiseases = rootView.findViewById(R.id.listViewDiseases)
         spinnerMunicipality = rootView.findViewById(R.id.spinnerMunicipality)
-
         firestore = FirebaseFirestore.getInstance()
 
-        // Set up adapter for ListView
-        diseaseAdapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, diseaseList)
-        listViewDiseases.adapter = diseaseAdapter
+        // Adapter setup once, backed by mutable caseList
+        adapter = CaseListAdapter(requireContext(), caseList)
+        listViewDiseases.adapter = adapter
 
-        // Set up Spinner
+        // Spinner setup
         val spinnerAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -47,19 +44,14 @@ class RecordFragment : Fragment() {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerMunicipality.adapter = spinnerAdapter
 
-        // Load diseases initially for "All"
-        loadDiseases("All")
+        // Load initial data
+        loadCases("All")
 
-        // Listener for Spinner
+        // Spinner listener
         spinnerMunicipality.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedMunicipality = municipalities[position]
-                loadDiseases(selectedMunicipality)
+                loadCases(selectedMunicipality)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -68,32 +60,28 @@ class RecordFragment : Fragment() {
         return rootView
     }
 
-    private fun loadDiseases(municipality: String) {
-        diseaseList.clear()
+    private fun loadCases(municipality: String) {
+        caseList.clear()
 
         var query: Query = firestore.collection("healthradarDB")
             .document("centralizedData")
             .collection("allCases")
 
         if (municipality != "All") {
-            if (municipality == "Consolacion") {
-                query = query.whereIn("Municipality", listOf("Consolacion", "consolacion", "Consolacion "))
-            } else {
-                query = query.whereEqualTo("Municipality", municipality)
-            }
+            query = query.whereEqualTo("Municipality", municipality)
         }
-
 
         query.get()
             .addOnSuccessListener { documents ->
-                for (doc: QueryDocumentSnapshot in documents) {
+                for (doc in documents) {
                     val diseaseName = doc.getString("DiseaseName") ?: "Unknown Disease"
                     val caseCount = doc.getString("CaseCount") ?: "0"
                     val muni = doc.getString("Municipality") ?: "Unknown"
+                    val date = doc.getString("DateReported") ?: doc.getString("uploadedAt") ?: "N/A"
 
-                    diseaseList.add("$diseaseName - $caseCount cases ($muni)")
+                    caseList.add(CaseItem(diseaseName, caseCount, muni, date))
                 }
-                diseaseAdapter.notifyDataSetChanged()
+                adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
