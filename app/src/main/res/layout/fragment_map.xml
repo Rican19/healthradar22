@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#FFFFFF">
 
-    <!-- FrameLayout to overlay legend on map -->
+    <!-- MAP SECTION -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -15,97 +17,93 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- Legend overlay -->
+        <!-- Floating Case Count Legend -->
         <LinearLayout
-            android:id="@+id/legendLayout"
+            android:id="@+id/legend_panel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp"
+            android:padding="10dp"
             android:background="#CCFFFFFF"
-            android:elevation="4dp"
-            android:layout_gravity="top|end"
-            android:layout_margin="12dp">
-        </LinearLayout>
+            android:elevation="8dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="12dp"
+            android:layout_marginTop="16dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Case Count Legend"
+                android:textColor="@android:color/black"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#E0E0E0" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="0 cases" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FFF59D" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="1–2 cases" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#FFB74D" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="3–5 cases" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#F57C00" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="6–10 cases" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#E53935" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="11–20 cases" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                <View android:layout_width="16dp" android:layout_height="16dp" android:background="#B71C1C" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:layout_marginStart="8dp" android:text="21+ cases" />
+            </LinearLayout>
+        </LinearLayout>
     </FrameLayout>
 
-    <!-- Municipality Panels -->
+    <!-- CONTROL PANEL BELOW MAP -->
     <LinearLayout
+        android:id="@+id/bottom_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:weightSum="3">
+        android:orientation="vertical"
+        android:background="#FFFFFFFF"
+        android:padding="12dp"
+        android:elevation="6dp">
 
-        <!-- Mandaue -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:padding="4dp">
-            <TextView
-                android:id="@+id/tv_mandaue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mandaue"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:gravity="center"/>
-            <Spinner
-                android:id="@+id/spinner_mandaue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </LinearLayout>
+            android:text="Select Disease"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="10dp" />
 
-        <!-- Consolacion -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <Spinner
+            android:id="@+id/spinner_disease"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:padding="4dp">
-            <TextView
-                android:id="@+id/tv_consolacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Consolacion"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:gravity="center"/>
-            <Spinner
-                android:id="@+id/spinner_consolacion"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </LinearLayout>
-
-        <!-- Liloan -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:padding="4dp">
-            <TextView
-                android:id="@+id/tv_liloan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Liloan"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:gravity="center"/>
-            <Spinner
-                android:id="@+id/spinner_liloan"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-        </LinearLayout>
+            android:spinnerMode="dropdown"
+            android:background="@android:drawable/btn_dropdown"
+            tools:ignore="TouchTargetSizeCheck" />
     </LinearLayout>
-
 </LinearLayout>

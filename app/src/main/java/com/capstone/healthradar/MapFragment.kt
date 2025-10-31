@@ -4,14 +4,8 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import org.json.JSONObject
@@ -20,242 +14,285 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polygon
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.File
+import java.util.concurrent.Executors
+import kotlin.math.min
 
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
-    private lateinit var spinnerMandaue: Spinner
-    private lateinit var spinnerConsolacion: Spinner
-    private lateinit var spinnerLiloan: Spinner
-    private lateinit var legendLayout: LinearLayout
+    private lateinit var spinnerDisease: Spinner
 
     private val db = FirebaseFirestore.getInstance()
     private val TAG = "MapFragment"
 
-    // Municipality -> Disease -> CaseCount
-    private val caseDataByDisease = mutableMapOf<String, MutableMap<String, Int>>()
-    // For dropdowns
-    private val diseaseData = mutableMapOf<String, MutableSet<String>>()
+    private val records = mutableListOf<Record>()
+    private val diseaseDisplayList = mutableListOf<String>()
+    private val geoFeatures = mutableListOf<GeoFeature>()
+    private val exec = Executors.newSingleThreadExecutor()
 
-    // Track selected disease per municipality
-    private val selectedDiseaseByMunicipality = mutableMapOf<String, String?>()
+    private var selectedDisease: String? = null
+
+    data class Record(
+        val diseaseNorm: String,
+        val diseaseDisplay: String,
+        val barangayNorm: String,
+        val municipalityNorm: String,
+        val caseCount: Int
+    )
+
+    data class GeoFeature(
+        val barangay: String,
+        val municipality: String,
+        val polygons: List<List<GeoPoint>>,
+        val normalizedBarangay: String = normalize(barangay),
+        val normalizedMunicipality: String = normalize(municipality)
+    )
+
+    companion object {
+        fun normalize(name: String?): String {
+            if (name == null) return ""
+            return name.lowercase()
+                .replace("brgy", "")
+                .replace("barangay", "")
+                .replace("city", "")
+                .replace("municipality", "")
+                .replace("liloan", "")
+                .replace("mandaue", "")
+                .replace("consolacion", "")
+                .replace("-", "")
+                .replace(".", "")
+                .replace("ñ", "n")
+                .replace("\\s+".toRegex(), "")
+                .trim()
+        }
+
+        fun fuzzyMatch(a: String?, b: String?): Boolean {
+            if (a == null || b == null) return false
+            val x = normalize(a)
+            val y = normalize(b)
+            return x == y || x.contains(y) || y.contains(x)
+        }
+    }
 
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val context = requireContext()
-        Configuration.getInstance().load(context, context.getSharedPreferences("prefs", 0))
+        val ctx = requireContext()
+        Configuration.getInstance().osmdroidBasePath = File(ctx.filesDir, "osmdroid")
+        Configuration.getInstance().osmdroidTileCache =
+            File(Configuration.getInstance().osmdroidBasePath, "tiles")
+        Configuration.getInstance().load(ctx, ctx.getSharedPreferences("prefs", 0))
 
-        val rootView = inflater.inflate(R.layout.fragment_map, container, false)
+        val root = inflater.inflate(R.layout.fragment_map, container, false)
+        mapView = root.findViewById(R.id.map_view)
+        spinnerDisease = root.findViewById(R.id.spinner_disease)
 
-        // Setup map
-        mapView = rootView.findViewById(R.id.map_view)
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
-        mapView.controller.setZoom(11.5)
-        mapView.controller.setCenter(GeoPoint(10.37, 123.965))
+        mapView.controller.setZoom(13.5)
+        mapView.controller.setCenter(GeoPoint(10.384, 123.957))
 
-        spinnerMandaue = rootView.findViewById(R.id.spinner_mandaue)
-        spinnerConsolacion = rootView.findViewById(R.id.spinner_consolacion)
-        spinnerLiloan = rootView.findViewById(R.id.spinner_liloan)
-        legendLayout = rootView.findViewById(R.id.legendLayout)
-
-        // Load Firestore data
-        loadCasesFromFirestore {
-            populateDiseaseDropdowns()
-            updatePolygonColors()
-            setupLegend()
-        }
-
-        return rootView
+        loadGeoJsonThenData()
+        return root
     }
 
-    // 🔹 Normalises municipality names from both Firestore + GeoJSON
-    private fun normalizeName(name: String?): String {
-        if (name == null) return ""
+    // ---------------- Load GeoJSON ----------------
+    private fun loadGeoJsonThenData() {
+        exec.execute {
+            try {
+                val jsonText = requireContext().assets.open("geoshapes.json")
+                    .bufferedReader().use { it.readText() }
 
-        val clean = name.lowercase()
-            .replace("-", "")
-            .replace(" ", "")
-            .trim()
+                val root = JSONObject(jsonText)
+                val features = root.getJSONArray("features")
+                geoFeatures.clear()
 
-        // Handle aliases / variations
-        return when {
-            clean.contains("mandaue") -> "mandaue"
-            clean.contains("consolacion") -> "consolacion"
-            clean.contains("liloan") -> "liloan"
-            else -> clean
+                for (i in 0 until features.length()) {
+                    val feature = features.getJSONObject(i)
+                    val props = feature.optJSONObject("properties") ?: continue
+
+                    val barangayRaw = props.optString("adm4_en", "Unknown")
+                    var municipalityRaw = props.optString("adm3_en", "Unknown")
+
+                    if (municipalityRaw == "Unknown") {
+                        val adm3Psgc = props.optLong("adm3_psgc", 0L)
+                        municipalityRaw = when (adm3Psgc) {
+                            702218000L -> "Liloan"
+                            702217000L -> "Consolacion"
+                            702214000L -> "Mandaue"
+                            else -> "Unknown"
+                        }
+                    }
+
+                    val geometry = feature.optJSONObject("geometry") ?: continue
+                    val polygons = mutableListOf<List<GeoPoint>>()
+
+                    when (geometry.optString("type")) {
+                        "Polygon" -> {
+                            val coords = geometry.getJSONArray("coordinates").getJSONArray(0)
+                            polygons.add(coordsToGeoPoints(coords))
+                        }
+                        "MultiPolygon" -> {
+                            val arr = geometry.getJSONArray("coordinates")
+                            for (m in 0 until arr.length()) {
+                                val coords = arr.getJSONArray(m).getJSONArray(0)
+                                polygons.add(coordsToGeoPoints(coords))
+                            }
+                        }
+                    }
+
+                    geoFeatures.add(GeoFeature(barangayRaw, municipalityRaw, polygons))
+                }
+
+                requireActivity().runOnUiThread {
+                    drawBaseMap()
+                    loadCasesFromFirestore()
+                }
+
+            } catch (ex: Exception) {
+                Log.e(TAG, "GeoJSON load failed", ex)
+            }
         }
     }
 
-    private fun loadCasesFromFirestore(onComplete: () -> Unit) {
+    private fun coordsToGeoPoints(coords: org.json.JSONArray): List<GeoPoint> {
+        val pts = mutableListOf<GeoPoint>()
+        for (i in 0 until coords.length()) {
+            val c = coords.getJSONArray(i)
+            pts.add(GeoPoint(c.getDouble(1), c.getDouble(0)))
+        }
+        return pts
+    }
+
+    private fun drawBaseMap() {
+        mapView.overlays.clear()
+        for (f in geoFeatures) {
+            for (ring in f.polygons) {
+                val poly = Polygon().apply {
+                    points = ring
+                    fillColor = Color.argb(60, 255, 255, 255)
+                    strokeColor = Color.argb(150, 0, 0, 0)
+                    strokeWidth = 1.5f
+                    title = "${f.barangay}, ${f.municipality}"
+                }
+                mapView.overlays.add(poly)
+            }
+        }
+        mapView.invalidate()
+    }
+
+    // ---------------- Firestore ----------------
+    private fun loadCasesFromFirestore() {
+        records.clear()
+        diseaseDisplayList.clear()
+
         db.collection("healthradarDB")
             .document("centralizedData")
             .collection("allCases")
             .get()
-            .addOnSuccessListener { documents ->
-                for (doc in documents) {
-                    var municipality = doc.getString("Municipality") ?: continue
-                    municipality = normalizeName(municipality)
+            .addOnSuccessListener { docs ->
+                for (doc in docs) {
+                    val disease = doc.getString("DiseaseName") ?: continue
+                    val barangay = doc.getString("Barangay") ?: ""
+                    val municipality = doc.getString("Municipality") ?: ""
+                    val count = (doc.get("CaseCount") as? Number)?.toInt() ?: 0
 
-                    val countStr = doc.getString("CaseCount") ?: "0"
-                    val count = countStr.toIntOrNull() ?: 0
-                    val disease = doc.getString("DiseaseName") ?: "Unknown"
+                    records.add(
+                        Record(
+                            normalize(disease),
+                            disease.trim(),
+                            normalize(barangay),
+                            normalize(municipality),
+                            count
+                        )
+                    )
 
-                    // Build nested map
-                    val muniMap = caseDataByDisease.getOrPut(municipality) { mutableMapOf() }
-                    val current = muniMap.getOrDefault(disease, 0)
-                    muniMap[disease] = current + count
-
-                    val diseases = diseaseData.getOrPut(municipality) { mutableSetOf() }
-                    diseases.add(disease)
+                    if (!diseaseDisplayList.contains(disease.trim()))
+                        diseaseDisplayList.add(disease.trim())
                 }
-                onComplete()
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error fetching Firestore data", e)
-                onComplete()
-            }
-    }
 
-    private fun populateDiseaseDropdowns() {
-        setSpinner(spinnerMandaue, "mandaue")
-        setSpinner(spinnerConsolacion, "consolacion")
-        setSpinner(spinnerLiloan, "liloan")
-    }
+                diseaseDisplayList.sortBy { it.lowercase() }
+                diseaseDisplayList.add(0, "Select Disease")
 
-    private fun setSpinner(spinner: Spinner, municipalityKey: String) {
-        val diseases = diseaseData[municipalityKey]?.toList() ?: listOf()
+                val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, diseaseDisplayList)
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerDisease.adapter = adapter
 
-        val adapter = if (diseases.isEmpty()) {
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, listOf("No Data Available"))
-        } else {
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, diseases)
-        }
+                spinnerDisease.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                        val selected = parent.getItemAtPosition(position) as String
+                        selectedDisease = if (selected == "Select Disease") null else normalize(selected)
+                        renderDiseasePolygons()
+                    }
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        spinner.isEnabled = diseases.isNotEmpty()
-
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val disease = parent.getItemAtPosition(position).toString()
-                if (disease != "No Data Available") {
-                    selectedDiseaseByMunicipality[municipalityKey] = disease
-                    Log.d(TAG, "Selected disease for $municipalityKey = $disease")
-                    updatePolygonColors()
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
             }
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
+            .addOnFailureListener {
+                Log.e(TAG, "Firestore load failed", it)
+            }
     }
 
-    private fun updatePolygonColors() {
+    // ---------------- Render Polygons ----------------
+    private fun renderDiseasePolygons() {
         mapView.overlays.clear()
+        drawBaseMap()
 
-        try {
-            val inputStream = requireContext().assets.open("geoshapes.json")
-            val json = BufferedReader(InputStreamReader(inputStream)).use { it.readText() }
+        val selected = selectedDisease ?: return
 
-            val jsonObj = JSONObject(json)
-            val features = jsonObj.getJSONArray("features")
+        val caseMap = mutableMapOf<String, Int>()
+        for (r in records) {
+            if (r.diseaseNorm == selected) {
+                val key = "${r.barangayNorm}_${r.municipalityNorm}"
+                caseMap[key] = caseMap.getOrDefault(key, 0) + r.caseCount
+            }
+        }
 
-            for (i in 0 until features.length()) {
-                val feature = features.getJSONObject(i)
-                val properties = feature.getJSONObject("properties")
+        for (f in geoFeatures) {
+            val brgy = f.normalizedBarangay
+            val muni = f.normalizedMunicipality
+            var count = 0
 
-                // ✅ Use actual keys from your GeoJSON
-                val municipalityNameRaw = properties.optString("adm3_en",
-                    properties.optString("name", "Unknown"))
-                val municipalityName = normalizeName(municipalityNameRaw)
-
-                val selectedDisease = selectedDiseaseByMunicipality[municipalityName]
-                val count = if (selectedDisease != null) {
-                    caseDataByDisease[municipalityName]?.get(selectedDisease) ?: 0
-                } else {
-                    caseDataByDisease[municipalityName]?.values?.sum() ?: 0
-                }
-
-                Log.d(TAG, "Polygon for $municipalityNameRaw → Disease=$selectedDisease Cases=$count")
-
-                val geometry = feature.getJSONObject("geometry")
-                if (geometry.getString("type") == "Polygon") {
-                    val coords = geometry.getJSONArray("coordinates").getJSONArray(0)
-                    val points = mutableListOf<GeoPoint>()
-                    for (j in 0 until coords.length()) {
-                        val coord = coords.getJSONArray(j)
-                        val lon = coord.getDouble(0)
-                        val lat = coord.getDouble(1)
-                        points.add(GeoPoint(lat, lon))
-                    }
-
-                    val polygon = Polygon().apply {
-                        this.points = points
-                        this.fillColor = getRiskColor(count)
-                        this.strokeColor = Color.BLACK
-                        this.strokeWidth = 2f
-                        this.title = if (selectedDisease != null) {
-                            "$municipalityNameRaw\n$selectedDisease: $count cases"
-                        } else {
-                            "$municipalityNameRaw\nTotal Cases: $count"
-                        }
-                    }
-
-                    mapView.overlays.add(polygon)
+            for ((key, value) in caseMap) {
+                val parts = key.split("_")
+                if (parts.size == 2 &&
+                    (fuzzyMatch(parts[0], brgy) || brgy.contains(parts[0])) &&
+                    (fuzzyMatch(parts[1], muni) || muni.contains(parts[1]))
+                ) {
+                    count = value
+                    break
                 }
             }
 
-            mapView.invalidate()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun getRiskColor(count: Int): Int {
-        return when {
-            count == 0 -> 0x5500FF00 // green
-            count in 1..50 -> 0x55FFFF00 // yellow
-            count in 51..150 -> 0x55FFA500 // orange
-            else -> 0x55FF0000 // red
-        }
-    }
-
-    private fun setupLegend() {
-        legendLayout.removeAllViews()
-
-        val riskLevels = listOf(
-            Pair("No Cases", 0x5500FF00),
-            Pair("1–50 Cases", 0x55FFFF00),
-            Pair("51–150 Cases", 0x55FFA500),
-            Pair("151+ Cases", 0x55FF0000)
-        )
-
-        for ((label, color) in riskLevels) {
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(10, 5, 10, 5)
+            val fillColor = when {
+                count == 0 -> Color.argb(60, 255, 255, 255)
+                count in 1..2 -> Color.parseColor("#FFF59D")
+                count in 3..5 -> Color.parseColor("#FFB74D")
+                count in 6..10 -> Color.parseColor("#F57C00")
+                count in 11..20 -> Color.parseColor("#E53935")
+                else -> Color.parseColor("#B71C1C")
             }
 
-            val colorBox = View(requireContext()).apply {
-                setBackgroundColor(color)
-                layoutParams = LinearLayout.LayoutParams(60, 60)
+            for (ring in f.polygons) {
+                val poly = Polygon().apply {
+                    points = ring
+                    this.fillColor = fillColor
+                    strokeColor = Color.BLACK
+                    strokeWidth = 1.5f
+                    title = "${f.barangay}, ${f.municipality}\nCases: $count"
+                }
+                mapView.overlays.add(poly)
             }
-
-            val text = TextView(requireContext()).apply {
-                text = label
-                textSize = 14f
-                setTextColor(Color.BLACK) // ✅ Set text color to black
-                setPadding(20, 0, 0, 0)
-            }
-
-            row.addView(colorBox)
-            row.addView(text)
-            legendLayout.addView(row)
         }
+
+        mapView.invalidate()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        exec.shutdownNow()
+    }
 }

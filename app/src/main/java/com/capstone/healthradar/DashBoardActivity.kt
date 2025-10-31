@@ -25,24 +25,23 @@ class DashBoardActivity : AppCompatActivity() {
     // ✅ Permission launcher for notifications (Android 13+)
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isFinishing || isDestroyed) return@registerForActivityResult
+
             if (isGranted) {
                 Log.d(TAG, "Notification permission granted")
                 getFCMToken()
             } else {
                 Log.w(TAG, "Notification permission denied")
-                Toast.makeText(this, "Notifications may be limited", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Notifications may be limited", Toast.LENGTH_SHORT).show()
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check user login status
         auth = FirebaseAuth.getInstance()
         if (auth.currentUser == null) {
-            // If no user is logged in, redirect to LoginActivity
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
@@ -58,41 +57,27 @@ class DashBoardActivity : AppCompatActivity() {
         // Navigation listener
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> {
-                    loadFragment(HomeFragment())
-                    true
-                }
-                R.id.nav_news -> {
-                    loadFragment(NewsFragment())
-                    true
-                }
-                R.id.nav_map -> {
-                    loadFragment(MapFragment())
-                    true
-                }
-                R.id.nav_records -> {
-                    loadFragment(RecordFragment())
-                    true
-                }
-                R.id.nav_profile -> {
-                    loadFragment(ProfileFragment())
-                    true
-                }
+                R.id.nav_home -> loadFragment(HomeFragment())
+                R.id.nav_news -> loadFragment(NewsFragment())
+                R.id.nav_map -> loadFragment(MapFragment())
+                R.id.nav_records -> loadFragment(RecordFragment())
+                R.id.nav_profile -> loadFragment(ProfileFragment())
                 else -> false
             }
+            true
         }
 
-        // ✅ Check & request notification permission (Android 13+)
         askNotificationPermission()
     }
 
-    private fun loadFragment(fragment: Fragment) {
+    private fun loadFragment(fragment: Fragment): Boolean {
         supportFragmentManager.beginTransaction()
             .replace(R.id.nav_host_fragment, fragment)
-            .commit()
+            // ✅ Prevent crash if called during state loss
+            .commitAllowingStateLoss()
+        return true
     }
 
-    // 🔹 Step 1: Request notification permission for Android 13+
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
@@ -100,44 +85,37 @@ class DashBoardActivity : AppCompatActivity() {
                     this,
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED -> {
-                    // Permission already granted
                     getFCMToken()
                 }
                 shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
-                    Toast.makeText(this, "Please enable notifications in settings", Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext, "Please enable notifications in settings", Toast.LENGTH_LONG).show()
                 }
                 else -> {
                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         } else {
-            // For Android 12 and below → no runtime permission needed
             getFCMToken()
         }
     }
 
-    // 🔹 Step 2: Fetch FCM token + Subscribe user to municipality topic
     private fun getFCMToken() {
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
+                if (isFinishing || isDestroyed) return@addOnCompleteListener
                 if (!task.isSuccessful) {
                     Log.w(TAG, "Fetching FCM registration token failed", task.exception)
                     return@addOnCompleteListener
                 }
 
-                // Get new FCM registration token
                 val token = task.result
                 Log.d(TAG, "FCM Token: $token")
-
-                // ✅ Now subscribe user based on Firestore municipality
                 subscribeUserToMunicipalityTopic()
             }
     }
 
-    // 🔹 Step 3: Subscribe user to their municipality topic from Firestore
     private fun subscribeUserToMunicipalityTopic() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (userId == null) {
+        val userId = auth.currentUser?.uid ?: run {
             Log.w(TAG, "⚠️ No logged-in user")
             return
         }
@@ -150,6 +128,8 @@ class DashBoardActivity : AppCompatActivity() {
 
         userRef.get()
             .addOnSuccessListener { document ->
+                if (isFinishing || isDestroyed) return@addOnSuccessListener
+
                 if (document != null && document.exists()) {
                     val municipality = document.getString("municipality")
                     if (municipality != null) {
@@ -157,13 +137,11 @@ class DashBoardActivity : AppCompatActivity() {
 
                         FirebaseMessaging.getInstance().subscribeToTopic(topic)
                             .addOnCompleteListener { subTask ->
+                                if (isFinishing || isDestroyed) return@addOnCompleteListener
+
                                 if (subTask.isSuccessful) {
                                     Log.d(TAG, "✅ Subscribed to $topic")
-                                    Toast.makeText(
-                                        this,
-                                        "Subscribed to $topic",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toast.makeText(applicationContext, "Subscribed to $topic", Toast.LENGTH_SHORT).show()
                                 } else {
                                     Log.w(TAG, "❌ Failed to subscribe to $topic", subTask.exception)
                                 }
@@ -180,7 +158,6 @@ class DashBoardActivity : AppCompatActivity() {
             }
     }
 
-    // 🔹 Step 4: Unsubscribe from all municipalities on logout
     private fun unsubscribeFromAllMunicipalityTopics() {
         val allMunicipalities = listOf("liloan", "consolacion", "mandaue")
 
@@ -197,10 +174,9 @@ class DashBoardActivity : AppCompatActivity() {
         }
     }
 
-    // 🔹 Step 5: Call this when logout button is clicked
     fun logoutUser() {
         unsubscribeFromAllMunicipalityTopics()
-        FirebaseAuth.getInstance().signOut()
+        auth.signOut()
 
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

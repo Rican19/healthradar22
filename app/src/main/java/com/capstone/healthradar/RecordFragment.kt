@@ -15,7 +15,6 @@ class RecordFragment : Fragment() {
     private lateinit var spinnerMunicipality: Spinner
     private lateinit var firestore: FirebaseFirestore
 
-    // Use the single CaseItem defined in CaseItem.kt
     private val caseList = mutableListOf<CaseItem>()
     private lateinit var adapter: CaseListAdapter
 
@@ -31,11 +30,10 @@ class RecordFragment : Fragment() {
         spinnerMunicipality = rootView.findViewById(R.id.spinnerMunicipality)
         firestore = FirebaseFirestore.getInstance()
 
-        // Adapter setup once, backed by mutable caseList
         adapter = CaseListAdapter(requireContext(), caseList)
         listViewDiseases.adapter = adapter
 
-        // Spinner setup
+        // Setup spinner
         val spinnerAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -44,10 +42,9 @@ class RecordFragment : Fragment() {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerMunicipality.adapter = spinnerAdapter
 
-        // Load initial data
+        // Load all data initially
         loadCases("All")
 
-        // Spinner listener
         spinnerMunicipality.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedMunicipality = municipalities[position]
@@ -63,28 +60,38 @@ class RecordFragment : Fragment() {
     private fun loadCases(municipality: String) {
         caseList.clear()
 
-        var query: Query = firestore.collection("healthradarDB")
+        val query: Query = firestore.collection("healthradarDB")
             .document("centralizedData")
             .collection("allCases")
 
-        if (municipality != "All") {
-            query = query.whereEqualTo("Municipality", municipality)
-        }
-
         query.get()
             .addOnSuccessListener { documents ->
+                if (!isAdded) return@addOnSuccessListener
                 for (doc in documents) {
                     val diseaseName = doc.getString("DiseaseName") ?: "Unknown Disease"
-                    val caseCount = doc.getString("CaseCount") ?: "0"
+                    val caseCount = doc.get("CaseCount")?.toString() ?: "0"
                     val muni = doc.getString("Municipality") ?: "Unknown"
-                    val date = doc.getString("DateReported") ?: doc.getString("uploadedAt") ?: "N/A"
+                    val date = doc.getString("DateReported")
+                        ?: doc.getString("uploadedAt")
+                        ?: "N/A"
 
-                    caseList.add(CaseItem(diseaseName, caseCount, muni, date))
+                    // Local filter (case-insensitive, hyphen-insensitive)
+                    if (municipality == "All" ||
+                        muni.replace("-", "", true).equals(municipality.replace("-", "", true), true)
+                    ) {
+                        caseList.add(CaseItem(diseaseName, caseCount, muni, date))
+                    }
                 }
+
+                // Sort alphabetically by disease name (case-insensitive)
+                caseList.sortBy { it.diseaseName.lowercase() }
+
                 adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (!isAdded) return@addOnFailureListener
+                Toast.makeText(requireContext(), "Error loading cases: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
+
 }

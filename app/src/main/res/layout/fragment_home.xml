@@ -1,66 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:padding="16dp">
+    android:fillViewport="true"
+    android:background="#FFFFFF">
 
-    <!-- Dashboard Title -->
-    <TextView
-        android:id="@+id/dashboardTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="DASHBOARD"
-        android:textColor="#FF0000"
-        android:textStyle="bold"
-        android:textSize="24sp"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Line Chart Section -->
-    <TextView
-        android:id="@+id/lineChartTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="My First Dataset"
-        android:textColor="#333333"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
-
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/lineChart"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#FFFFFF"
-        android:layout_marginBottom="24dp"/>
-
-    <!-- Pie Chart Section -->
-    <TextView
-        android:id="@+id/pieChartTitle"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Consolacion Chart"
-        android:textColor="#333333"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        android:padding="16dp">
 
-    <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/pieChart"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:background="#FFFFFF"
-        android:layout_marginBottom="16dp"/>
+        <!-- Dashboard Title -->
+        <TextView
+            android:id="@+id/dashboardTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DASHBOARD"
+            android:textColor="#FF0000"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:layout_marginBottom="16dp"/>
 
-    <!-- Municipality Spinner -->
-    <Spinner
-        android:id="@+id/municipalitySpinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#000000"
-        android:layout_marginTop="8dp"
-        android:background="@android:drawable/btn_dropdown"
-        android:padding="8dp" />
-</LinearLayout>
+        <!-- Bar Chart Section -->
+        <TextView
+            android:id="@+id/barChartTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Weekly Cases Chart"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="#FFFFFF"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Pie Chart Section -->
+        <TextView
+            android:id="@+id/pieChartTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pie Chart"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:background="#FFFFFF"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Pie Chart Legend -->
+        <LinearLayout
+            android:id="@+id/pieLegendLayout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Municipality Buttons BELOW PieChart -->
+        <LinearLayout
+            android:id="@+id/municipalityButtonsLayout"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnLiloan"
+                android:layout_width="0dp"
+                android:textSize="10dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Liloan"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btnConsolacion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Consolacion"
+                android:textSize="10dp"
+                android:layout_marginEnd="10dp"/>
+
+            <Button
+                android:id="@+id/btnMandaue"
+                android:layout_width="0dp"
+                android:textSize="10dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mandaue"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
