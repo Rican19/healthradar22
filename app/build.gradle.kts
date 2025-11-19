@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.googleid)
 
     // Multidex Support
+    implementation ("com.tbuonomo:dotsindicator:4.3")
     implementation("androidx.multidex:multidex:2.0.1")
 
     testImplementation(libs.junit)

@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class NewsAdapter(private val context: Context, private val articles: List<Article>) :
+class NewsAdapter(private val context: Context, private val articles: List<NewsArticle>) :
     RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
 
     inner class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -39,4 +39,3 @@ class NewsAdapter(private val context: Context, private val articles: List<Artic
 
     override fun getItemCount(): Int = articles.size
 }
-

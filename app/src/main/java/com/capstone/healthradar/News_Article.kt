@@ -1,6 +1,6 @@
 package com.capstone.healthradar
 
- class NewsArticle(
+data class NewsArticle(
     val title: String,
     val description: String,
     val url: String,

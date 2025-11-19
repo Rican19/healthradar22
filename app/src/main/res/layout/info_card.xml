@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/info_card_background"
+    android:elevation="8dp">
+
+    <TextView
+        android:id="@+id/textBarangay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Barangay Name"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/textMunicipality"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Municipality: Liloan"
+        android:textColor="#444444"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Total cases box -->
+    <TextView
+        android:id="@+id/textTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Total Cases: 12"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:textColor="#000000"
+        android:padding="8dp"
+        android:background="@drawable/total_case_box"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#CCCCCC"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:id="@+id/listDiseases"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+</LinearLayout>
