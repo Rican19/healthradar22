@@ -10,4 +10,26 @@
     <color name="red">#ff0000</color>
     <color name="rose">#ff9795</color>
     <color name="blue">#7d98fc</color>
+    <color name="gray">#FF888888</color>
+    <color name="gray_light">#FFF0F0F0</color>
+    <color name="colorPrimary">#6366F1</color>
+    <color name="colorPrimaryDark">#4338CA</color>
+    <color name="colorAccent">#06D6A0</color>
+
+    <color name="background">#F8FAFC</color>
+
+    <color name="input_background">#F8FAFC</color>
+    <color name="input_stroke">#E2E8F0</color>
+    <color name="hint_color">#94A3B8</color>
+
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#6366F1</color>
+    <color name="gradient_mid">#8B5CF6</color>
+    <color name="gradient_end">#EC4899</color>
+
+
+
+    <!-- Add these colors if missing -->
+    <color name="success_green">#4CAF50</color>
+    <color name="error_red">#F44336</color>
 </resources>

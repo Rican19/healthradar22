@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -81,55 +82,67 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <!-- Header Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
+                    android:layout_marginBottom="16dp">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Weekly Disease Trends"
+                        android:text="Weekly Cases"
                         android:textColor="#FFFFFF"
-                        android:textStyle="bold"
-                        android:textSize="17sp"/>
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
-                    <!-- Simplified Spinner without custom background -->
+                <!-- Bar Chart -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/barChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="#1E1E1E"
+                    android:layout_marginBottom="8dp"/>
+
+                <!-- Day Labels -->
+                <LinearLayout
+                    android:id="@+id/dayLabels"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp"/>
+
+                <!-- Week Spinner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="end"
+                    android:layout_marginTop="8dp">
+
                     <Spinner
                         android:id="@+id/weekSpinner"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:minWidth="140dp"
                         android:backgroundTint="#FFFFFF"
+                        android:minWidth="120dp"
                         android:popupBackground="#1E1E1E"
-                        android:spinnerMode="dropdown"/>
+                        android:spinnerMode="dropdown"
+                        tools:ignore="TouchTargetSizeCheck" />
+
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/lineGraphDescription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Summary of weekly reported disease cases"
-                    android:textColor="#CCCCCC"
-                    android:textSize="13sp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="14dp"/>
-
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/barChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:background="#1E1E1E"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- PIE CHART CARD - Larger height -->
+        <!-- PIE CHART CARDS VIEWPAGER -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="700dp"
+            android:layout_height="550dp"
             android:layout_marginBottom="18dp"
             android:background="#1E1E1E"
             app:cardElevation="4dp"
@@ -139,19 +152,49 @@
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="16dp">
+                android:padding="8dp">
 
-                <TextView
-                    android:id="@+id/currentMunicipality"
-                    android:text="Mandaue"
-                    android:textColor="#FFFFFF"
-                    android:textSize="17sp"
-                    android:textStyle="bold"
+                <!-- Navigation Header -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp"
+                    android:paddingHorizontal="8dp">
 
-                <!-- Municipality Indicator Dots -->
+                    <!-- Left Arrow -->
+                    <ImageView
+                        android:id="@+id/leftArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_left"
+                        android:visibility="invisible"
+                        android:contentDescription="Previous municipality"
+                        app:tint="#5A4CE1" />
+
+                    <!-- Title -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Disease Distribution"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+
+                    <!-- Right Arrow -->
+                    <ImageView
+                        android:id="@+id/rightArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:contentDescription="Next municipality"
+                        app:tint="#5A4CE1" />
+                </LinearLayout>
+
+                <!-- Municipality Indicator -->
                 <LinearLayout
                     android:id="@+id/municipalityIndicator"
                     android:layout_width="wrap_content"
@@ -161,48 +204,25 @@
                     android:layout_gravity="center"
                     android:layout_marginBottom="12dp"/>
 
-                <!-- Pie Chart ViewPager -->
+                <!-- Swipe Hint -->
+                <TextView
+                    android:id="@+id/swipeHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Swipe to view other municipalities"
+                    android:textColor="#888888"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Pie Charts ViewPager - This will contain separate cards -->
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/pieChartPager"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"/>
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <!-- RECENTLY ADDED DISEASES HEADER -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp">
-
-            <TextView
-                android:text="Recently Added Diseases"
-                android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"/>
-
-            <TextView
-                android:id="@+id/btnShowAll"
-                android:text="Show all"
-                android:textColor="#4A90E2"
-                android:textSize="14sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <!-- RECENTLY ADDED DISEASES CARDS -->
-        <LinearLayout
-            android:id="@+id/latestRecordsContainer"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="20dp"/>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

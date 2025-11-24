@@ -2,4 +2,10 @@
     <string name="app_name">HealthRadar</string>
     <string name="line_chart_desc">Line chart showing disease cases over time</string>
     <string name="pie_chart_desc">Pie chart showing distribution of cases by disease</string>
+    <string name="card_content_description">Municipality health data card</string>
+    <string name="pie_chart_content_description">Pie chart showing disease distribution</string>
+    <string name="disease_list_content_description">Scrollable list of diseases and their case counts</string>
+    <string name="disease_item_content_description">%1$s disease with %2$d cases</string>
+    <string name="no_disease_data">No disease data available</string>
+
 </resources>

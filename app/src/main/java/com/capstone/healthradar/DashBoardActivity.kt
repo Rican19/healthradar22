@@ -68,6 +68,26 @@ class DashBoardActivity : AppCompatActivity() {
         }
 
         askNotificationPermission()
+
+        // Handle notifications when app is opened from notification
+        handleNotificationData(intent)
+    }
+
+    private fun handleNotificationData(intent: Intent?) {
+        intent?.extras?.let { bundle ->
+            if (bundle.containsKey("municipality") || bundle.containsKey("notification_type")) {
+                val municipality = bundle.getString("municipality")
+                val title = bundle.getString("title")
+                val message = bundle.getString("message")
+
+                Log.d(TAG, "App opened from notification: $municipality")
+                if (municipality != null) {
+                    Toast.makeText(this, "Notification from $municipality", Toast.LENGTH_SHORT).show()
+                }
+
+                // You can navigate to specific fragment or show details based on notification
+            }
+        }
     }
 
     private fun loadFragment(fragment: Fragment): Boolean {
@@ -133,7 +153,11 @@ class DashBoardActivity : AppCompatActivity() {
                 if (document != null && document.exists()) {
                     val municipality = document.getString("municipality")
                     if (municipality != null) {
-                        val topic = "municipality_${municipality.lowercase()}"
+                        // First unsubscribe from all municipalities to avoid duplicates
+                        unsubscribeFromAllMunicipalityTopics()
+
+                        // Then subscribe to current municipality
+                        val topic = "municipality_${municipality.lowercase().trim()}"
 
                         FirebaseMessaging.getInstance().subscribeToTopic(topic)
                             .addOnCompleteListener { subTask ->
@@ -141,7 +165,7 @@ class DashBoardActivity : AppCompatActivity() {
 
                                 if (subTask.isSuccessful) {
                                     Log.d(TAG, "✅ Subscribed to $topic")
-                                    Toast.makeText(applicationContext, "Subscribed to $topic", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, "Subscribed to $municipality notifications", Toast.LENGTH_SHORT).show()
                                 } else {
                                     Log.w(TAG, "❌ Failed to subscribe to $topic", subTask.exception)
                                 }
@@ -162,7 +186,7 @@ class DashBoardActivity : AppCompatActivity() {
         val allMunicipalities = listOf("liloan", "consolacion", "mandaue")
 
         for (m in allMunicipalities) {
-            val topic = "municipality_$m"
+            val topic = "municipality_${m.lowercase().trim()}"
             FirebaseMessaging.getInstance().unsubscribeFromTopic(topic)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -182,5 +206,16 @@ class DashBoardActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleNotificationData(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Resubscribe to ensure topic subscription is current
+        subscribeUserToMunicipalityTopic()
     }
 }

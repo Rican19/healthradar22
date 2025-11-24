@@ -65,8 +65,14 @@ android {
 }
 
 dependencies {
+
+
     // ✅ Use Firebase BoM to keep versions consistent
     implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+
+    implementation ("com.google.android.material:material:1.9.0")
+    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation ("com.github.bumptech.glide:glide:4.15.1")
 
     // Firebase modules
     implementation("com.google.firebase:firebase-auth-ktx")
@@ -110,6 +116,8 @@ dependencies {
     // Multidex Support
     implementation ("com.tbuonomo:dotsindicator:4.3")
     implementation("androidx.multidex:multidex:2.0.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

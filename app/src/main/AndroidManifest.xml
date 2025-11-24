@@ -26,16 +26,6 @@
         android:theme="@style/Theme.HealthRadar"
         tools:targetApi="31">
 
-        <activity
-            android:name=".NewsArticle"
-            android:exported="false"
-            tools:ignore="Instantiatable,MissingClass" />
-
-        <activity
-            android:name=".NewsAdapter"
-            android:exported="false"
-            tools:ignore="Instantiatable" />
-
         <!-- Splash screen as launcher -->
         <activity
             android:name=".SplashActivity"
@@ -46,29 +36,23 @@
             </intent-filter>
         </activity>
 
-        <!-- Other activities -->
-        <activity
-            android:name=".SignUpActivity"
-            android:exported="false" />
-
+        <!-- Login Activity -->
         <activity
             android:name=".LoginActivity"
-            android:exported="true">
-            <meta-data
-                android:name="osmdroid.basePath"
-                android:value="osmdroid" />
-            <meta-data
-                android:name="osmdroid.cachePath"
-                android:value="osmdroid/cache" />
-        </activity>
+            android:exported="true" />
+
+        <!-- SignUp Activity - FIXED: exported="true" -->
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="true" />
 
         <activity
             android:name=".DashBoardActivity"
             android:exported="false" />
 
-        <!-- ✅ Firebase Messaging Service -->
+        <!-- ✅ Updated Firebase Messaging Service -->
         <service
-            android:name=".MyfirebaseService"
+            android:name=".MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

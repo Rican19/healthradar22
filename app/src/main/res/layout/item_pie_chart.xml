@@ -1,54 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp"
-    android:background="#1E1E1E">
+    android:layout_margin="8dp"
+    android:contentDescription="@string/card_content_description"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#2D2D2D">
 
-    <!-- Pie Chart - Top 60% -->
-    <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/pieChartItem"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.6"
-        android:layout_gravity="top"/>
-
-    <!-- Disease List - Bottom 40%, always visible -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.4"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#2D2D2D"
-        android:padding="16dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center">
+        android:padding="16dp">
 
+        <!-- Municipality Header -->
+        <TextView
+            android:id="@+id/municipalityTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mandaue"
+            android:textColor="#5A4CE1"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:importantForAccessibility="yes" />
+
+        <!-- Pie Chart with fixed height -->
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChartItem"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/pie_chart_content_description" />
+
+        <!-- Disease Breakdown Header -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Disease Cases"
+            android:text="Disease Breakdown:"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp"
-            android:gravity="center"/>
+            android:layout_marginBottom="8dp"
+            android:importantForAccessibility="yes" />
 
+        <!-- Scrollable Disease List - FIXED -->
         <ScrollView
+            android:id="@+id/diseaseScrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:contentDescription="@string/disease_list_content_description"
+            android:importantForAccessibility="yes">
 
             <LinearLayout
                 android:id="@+id/diseaseContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"/>
+                android:orientation="vertical"
+                android:minHeight="100dp" />
 
         </ScrollView>
 
     </LinearLayout>
 
-</LinearLayout>
+</androidx.cardview.widget.CardView>
