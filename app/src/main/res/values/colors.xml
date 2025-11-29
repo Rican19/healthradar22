@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Your Existing Colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -15,21 +16,118 @@
     <color name="colorPrimary">#6366F1</color>
     <color name="colorPrimaryDark">#4338CA</color>
     <color name="colorAccent">#06D6A0</color>
-
     <color name="background">#F8FAFC</color>
-
     <color name="input_background">#F8FAFC</color>
     <color name="input_stroke">#E2E8F0</color>
     <color name="hint_color">#94A3B8</color>
-
-    <!-- Gradient Colors -->
     <color name="gradient_start">#6366F1</color>
     <color name="gradient_mid">#8B5CF6</color>
     <color name="gradient_end">#EC4899</color>
-
-
-
-    <!-- Add these colors if missing -->
     <color name="success_green">#4CAF50</color>
     <color name="error_red">#F44336</color>
+
+    <!-- Profile Colors - Using your existing colors -->
+    <color name="primary_500">#6366F1</color>
+    <color name="primary_600">#4F46E5</color>
+    <color name="primary_700">#4338CA</color>
+    <color name="primary_50">#EEF2FF</color>
+    <color name="primary_100">#E0E7FF</color>
+
+    <color name="secondary_500">#06D6A0</color>
+    <color name="secondary_600">#05C191</color>
+    <color name="secondary_700">#04A882</color>
+    <color name="secondary_50">#F0FDF9</color>
+    <color name="secondary_100">#CCFBEF</color>
+
+    <color name="accent_500">#8B5CF6</color>
+    <color name="accent_600">#7C3AED</color>
+    <color name="accent_700">#6D28D9</color>
+    <color name="accent_50">#F5F3FF</color>
+    <color name="accent_100">#EDE9FE</color>
+
+    <color name="success_500">#10B981</color>
+    <color name="success_50">#ECFDF5</color>
+    <color name="warning_500">#F59E0B</color>
+    <color name="warning_50">#FFFBEB</color>
+    <color name="error_500">#EF4444</color>
+    <color name="error_50">#FEF2F2</color>
+
+    <!-- Neutral Colors -->
+    <color name="neutral_50">#F8FAFC</color>
+    <color name="neutral_100">#F1F5F9</color>
+    <color name="neutral_200">#E2E8F0</color>
+    <color name="neutral_300">#CBD5E1</color>
+    <color name="neutral_400">#94A3B8</color>
+    <color name="neutral_500">#64748B</color>
+    <color name="neutral_600">#475569</color>
+    <color name="neutral_700">#334155</color>
+    <color name="neutral_800">#1E293B</color>
+    <color name="neutral_900">#0F172A</color>
+
+    <!-- Surface Colors -->
+    <color name="surface_primary">#FFFFFF</color>
+    <color name="surface_secondary">#F8FAFC</color>
+    <color name="surface_tertiary">#F1F5F9</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#475569</color>
+    <color name="text_tertiary">#64748B</color>
+    <color name="text_disabled">#94A3B8</color>
+    <color name="text_inverse">#FFFFFF</color>
+
+    <!-- ===== NEWS THEME COLORS ===== -->
+    <!-- Primary Colors for News Theme -->
+    <color name="primary_color">#6366F1</color>
+    <color name="primary_light">#8B5CF6</color>
+    <color name="primary_dark">#4338CA</color>
+
+    <!-- Secondary Colors -->
+    <color name="accent_color">#06D6A0</color>
+    <color name="secondary_color">#8B5CF6</color>
+
+    <!-- Background Colors for White Theme -->
+    <color name="light_background">#F8FAFC</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_image_background">#F1F5F9</color>
+
+    <!-- Text Colors for White Theme -->
+    <color name="dark_text">#1E293B</color>
+    <color name="medium_gray">#64748B</color>
+    <color name="light_gray">#94A3B8</color>
+
+    <!-- Border and Divider Colors -->
+    <color name="light_border">#E2E8F0</color>
+    <color name="divider_color">#F1F5F9</color>
+
+    <!-- News Specific Colors -->
+    <color name="news_card_background">#FFFFFF</color>
+    <color name="news_card_elevation">#1E293B</color>
+    <color name="news_source_color">#6366F1</color>
+    <color name="news_time_color">#94A3B8</color>
+    <color name="news_read_more_bg">#6366F1</color>
+    <color name="news_read_more_text">#FFFFFF</color>
+
+    <!-- Status Colors -->
+    <color name="ripple_color">#1A6366F1</color>
+    <color name="success_color">#10B981</color>
+    <color name="warning_color">#F59E0B</color>
+    <color name="error_color">#EF4444</color>
+
+    <!-- Swipe Refresh Colors -->
+    <color name="swipe_refresh_color1">#6366F1</color>
+    <color name="swipe_refresh_color2">#8B5CF6</color>
+    <color name="swipe_refresh_color3">#06D6A0</color>
+    <color name="swipe_refresh_color4">#EC4899</color>
+
+    <!-- Card States -->
+    <color name="card_pressed_state">#0F172A08</color>
+    <color name="card_focused_state">#0F172A12</color>
+    <color name="card_hovered_state">#0F172A0A</color>
+
+    <!-- Gradient Colors for Future Use -->
+    <color name="gradient_blue_start">#6366F1</color>
+    <color name="gradient_blue_end">#8B5CF6</color>
+    <color name="gradient_teal_start">#06D6A0</color>
+    <color name="gradient_teal_end">#10B981</color>
 </resources>

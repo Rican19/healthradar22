@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,65 +31,98 @@ class NewsAdapter(
         val article = articles[position]
         holder.bind(article)
 
-        holder.itemView.setOnClickListener {
+        holder.cardView?.setOnClickListener {
             onItemClick(article)
         }
 
-        holder.buttonReadMore.setOnClickListener {
+        holder.buttonReadMore?.setOnClickListener {
             onItemClick(article)
         }
     }
 
     override fun getItemCount(): Int = articles.size
 
+    fun updateData(newArticles: List<NewsArticle>) {
+        articles = newArticles
+        notifyDataSetChanged()
+    }
+
     inner class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val imageView: ImageView = itemView.findViewById(R.id.imageViewNews)
-        private val titleTextView: TextView = itemView.findViewById(R.id.textViewTitle)
-        private val descriptionTextView: TextView = itemView.findViewById(R.id.textViewDescription)
-        private val sourceTextView: TextView = itemView.findViewById(R.id.textViewSource)
-        private val timeTextView: TextView = itemView.findViewById(R.id.textViewTime)
-        val buttonReadMore: MaterialButton = itemView.findViewById(R.id.buttonReadMore)
+        // Make all views nullable and use safe initialization
+        private val imageView: ImageView? = itemView.findViewById(R.id.imageViewNews)
+        private val titleTextView: TextView? = itemView.findViewById(R.id.textViewTitle)
+        private val descriptionTextView: TextView? = itemView.findViewById(R.id.textViewDescription)
+        private val sourceTextView: TextView? = itemView.findViewById(R.id.textViewSource)
+        private val timeTextView: TextView? = itemView.findViewById(R.id.textViewTime)
+        val buttonReadMore: MaterialButton? = itemView.findViewById(R.id.buttonReadMore)
+        val cardView: MaterialCardView? = itemView.findViewById(R.id.cardView)
 
         fun bind(article: NewsArticle) {
-            titleTextView.text = article.title ?: "No Title"
-            descriptionTextView.text = article.description ?: "No description available"
-            sourceTextView.text = article.source?.name ?: "Unknown Source"
+            // Safely set text on views that exist
+            titleTextView?.text = article.title ?: "No Title"
+            descriptionTextView?.text = article.description ?: "No description available"
+            sourceTextView?.text = article.source?.name ?: "Unknown Source"
 
             // Format published date
             article.publishedAt?.let {
-                timeTextView.text = formatDate(it)
+                timeTextView?.text = formatDate(it)
             } ?: run {
-                timeTextView.text = "Unknown time"
+                timeTextView?.text = "Unknown time"
             }
 
-            // Load image with Glide - SIMPLIFIED VERSION
+            // Apply text colors to views that exist
+            applyTextColors()
+
+            // Load image if imageView exists
             loadImage(article.urlToImage)
         }
 
+        private fun applyTextColors() {
+            // Safely apply colors only if views exist
+            titleTextView?.setTextColor(ContextCompat.getColor(context, R.color.dark_text))
+            descriptionTextView?.setTextColor(ContextCompat.getColor(context, R.color.medium_gray))
+            sourceTextView?.setTextColor(ContextCompat.getColor(context, R.color.primary_color))
+            timeTextView?.setTextColor(ContextCompat.getColor(context, R.color.light_gray))
+
+            // Style the read more button if it exists
+            buttonReadMore?.setBackgroundColor(ContextCompat.getColor(context, R.color.primary_color))
+            buttonReadMore?.setTextColor(ContextCompat.getColor(context, R.color.white))
+        }
+
         private fun loadImage(imageUrl: String?) {
-            if (!imageUrl.isNullOrEmpty()) {
-                Glide.with(context)
-                    .load(imageUrl)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .placeholder(R.drawable.placeholder_background) // Use your placeholder
-                    .error(R.drawable.placeholder_background) // Use same for error
-                    .into(imageView) // This should work now
-            } else {
-                // Set placeholder when no image URL
-                imageView.setBackgroundColor(ContextCompat.getColor(context, android.R.color.darker_gray))
-                // Or set a placeholder drawable
-                // imageView.setImageResource(R.drawable.placeholder_background)
+            // Only load image if imageView exists
+            imageView?.let { imgView ->
+                if (!imageUrl.isNullOrEmpty()) {
+                    Glide.with(context)
+                        .load(imageUrl)
+                        .transition(DrawableTransitionOptions.withCrossFade(300))
+                        .placeholder(android.R.color.darker_gray)
+                        .error(android.R.color.darker_gray)
+                        .centerCrop()
+                        .into(imgView)
+                } else {
+                    // Set placeholder when no image URL
+                    imgView.setBackgroundColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+                    imgView.setImageDrawable(null)
+                }
             }
         }
 
         private fun formatDate(dateString: String): String {
             return try {
                 val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                val outputFormat = SimpleDateFormat("MMM dd, yyyy • HH:mm", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault())
                 val date = inputFormat.parse(dateString)
                 outputFormat.format(date ?: Date())
             } catch (e: Exception) {
-                "Invalid date"
+                try {
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                    val date = inputFormat.parse(dateString)
+                    outputFormat.format(date ?: Date())
+                } catch (e2: Exception) {
+                    "Recent"
+                }
             }
         }
     }

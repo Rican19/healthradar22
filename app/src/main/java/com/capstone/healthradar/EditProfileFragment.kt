@@ -17,6 +17,7 @@ class EditProfileFragment : Fragment() {
     private lateinit var lastNameInput: EditText
     private lateinit var phoneInput: EditText
     private lateinit var municipalityInput: EditText
+    private lateinit var barangayInput: EditText
     private lateinit var saveButton: Button
 
     private lateinit var auth: FirebaseAuth
@@ -35,6 +36,7 @@ class EditProfileFragment : Fragment() {
         lastNameInput = view.findViewById(R.id.editLastName)
         phoneInput = view.findViewById(R.id.editPhone)
         municipalityInput = view.findViewById(R.id.editMunicipality)
+        barangayInput = view.findViewById(R.id.editBarangay)
         saveButton = view.findViewById(R.id.saveProfileButton)
 
         loadUserData()
@@ -47,52 +49,95 @@ class EditProfileFragment : Fragment() {
     }
 
     private fun loadUserData() {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            db.collection("users").document(userId).get()
-                .addOnSuccessListener { document ->
+        val user = auth.currentUser
+        if (user != null) {
+            db.collection("healthradarDB").document("users")
+                .collection("user")
+                .whereEqualTo("userAuthId", user.uid)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
                     if (!isAdded) return@addOnSuccessListener
-                    if (document != null && document.exists()) {
+
+                    if (!querySnapshot.isEmpty) {
+                        val document = querySnapshot.documents[0]
                         val firstName = document.getString("firstName") ?: ""
                         val lastName = document.getString("lastName") ?: ""
                         val phone = document.getString("phone") ?: ""
                         val municipality = document.getString("municipality") ?: ""
+                        val barangay = document.getString("barangay") ?: ""
 
                         firstNameInput.setText(firstName)
                         lastNameInput.setText(lastName)
                         phoneInput.setText(phone)
                         municipalityInput.setText(municipality)
+                        barangayInput.setText(barangay)
                     } else {
                         Toast.makeText(requireContext(), "Profile not found", Toast.LENGTH_SHORT).show()
                     }
                 }
-                .addOnFailureListener {
-                    if (isAdded) Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
+                .addOnFailureListener { e ->
+                    if (isAdded) {
+                        Toast.makeText(requireContext(), "Failed to load profile: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
                 }
         } else {
             if (isAdded) Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
         }
     }
 
-
     private fun updateUserProfile() {
-        val userId = auth.currentUser?.uid ?: return
+        val user = auth.currentUser
+        if (user == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val updatedData = mapOf(
-            "firstName" to firstNameInput.text.toString(),
-            "lastName" to lastNameInput.text.toString(),
-            "phone" to phoneInput.text.toString(),
-            "municipality" to municipalityInput.text.toString()
+        val firstName = firstNameInput.text.toString().trim()
+        val lastName = lastNameInput.text.toString().trim()
+        val phone = phoneInput.text.toString().trim()
+        val municipality = municipalityInput.text.toString().trim()
+        val barangay = barangayInput.text.toString().trim()
+
+        // Basic validation
+        if (firstName.isEmpty() || lastName.isEmpty()) {
+            Toast.makeText(requireContext(), "First name and last name are required", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val updatedData = hashMapOf(
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "phone" to phone,
+            "municipality" to municipality,
+            "barangay" to barangay
         )
 
-        db.collection("users").document(userId)
-            .update(updatedData)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
-                parentFragmentManager.popBackStack() // Go back to previous fragment
+        // Find the document by userAuthId and update it
+        db.collection("healthradarDB").document("users")
+            .collection("user")
+            .whereEqualTo("userAuthId", user.uid)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    val document = querySnapshot.documents[0]
+                    document.reference.update(updatedData as Map<String, Any>)
+                        .addOnSuccessListener {
+                            Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                            parentFragmentManager.popBackStack() // Go back to profile fragment
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(requireContext(), "Update failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(requireContext(), "Profile not found", Toast.LENGTH_SHORT).show()
+                }
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Update failed", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to find profile: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
     }
 }

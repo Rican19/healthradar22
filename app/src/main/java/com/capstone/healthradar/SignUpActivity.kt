@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
@@ -38,13 +39,23 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvLogin: TextView
 
+    // TextInputLayouts for error handling
+    private lateinit var tilFirstName: TextInputLayout
+    private lateinit var tilLastName: TextInputLayout
+    private lateinit var tilPhone: TextInputLayout
+    private lateinit var tilSex: TextInputLayout
+    private lateinit var tilEmail: TextInputLayout
+    private lateinit var tilPassword: TextInputLayout
+    private lateinit var tilConfirmPassword: TextInputLayout
+    private lateinit var tilMunicipal: TextInputLayout
+    private lateinit var tilBarangay: TextInputLayout
+
     // Barangay data for each municipality
     private val liloanBarangays = arrayOf(
         "Select Barangay",
-        "San Vicente", "San Roque", "San Fernando", "Poblacion",
-        "Mulao", "Mantuyong", "Magay", "Lataban", "Javier",
-        "Guindaruhan", "Cabadiangan", "Bugho", "Bunga", "Bonbon",
-        "Biga", "Benolho", "Anilao", "Alang-alang"
+        "Cabadiangan","Calero","Catarman","Cotcot","Jubay","Lataban",
+        "Mulao","Poblacion", "San Roque","San Vicente","Santa Cruz",
+        "Tabla","Tayud","Yati"
     )
 
     private val consolacionBarangays = arrayOf(
@@ -95,6 +106,7 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun initializeViews() {
         try {
+            // EditText fields
             etFirstName = findViewById(R.id.etFirstName)
             etLastName = findViewById(R.id.etLastName)
             etPhone = findViewById(R.id.etPhone)
@@ -108,9 +120,23 @@ class SignUpActivity : AppCompatActivity() {
             progressBar = findViewById(R.id.progressBar)
             tvLogin = findViewById(R.id.tvLogin)
 
-            // Set initial state
-            btnSignUp.isEnabled = false
+            // TextInputLayout fields
+            tilFirstName = findViewById(R.id.tilFirstName)
+            tilLastName = findViewById(R.id.tilLastName)
+            tilPhone = findViewById(R.id.tilPhone)
+            tilSex = findViewById(R.id.tilSex)
+            tilEmail = findViewById(R.id.tilEmail)
+            tilPassword = findViewById(R.id.tilPassword)
+            tilConfirmPassword = findViewById(R.id.tilConfirmPassword)
+            tilMunicipal = findViewById(R.id.tilMunicipal)
+            tilBarangay = findViewById(R.id.tilBarangay)
+
+            // Set initial state - BUTTON IS NOW ALWAYS ENABLED
+            btnSignUp.isEnabled = true
             progressBar.visibility = View.GONE
+
+            // Clear all errors initially
+            clearAllErrors()
         } catch (e: Exception) {
             Log.e(TAG, "View initialization failed: ${e.message}")
             showToast("❌ App layout error. Please restart the app.")
@@ -139,6 +165,7 @@ class SignUpActivity : AppCompatActivity() {
             val selectedMunicipality = parent.getItemAtPosition(position).toString()
             Log.d(TAG, "Municipality selected: $selectedMunicipality")
             updateBarangayDropdown(selectedMunicipality)
+            clearError(tilMunicipal)
         }
 
         // Force show dropdown when municipality field gains focus
@@ -188,10 +215,12 @@ class SignUpActivity : AppCompatActivity() {
 
         btnSignUp.setOnClickListener {
             Log.d(TAG, "Sign up button clicked")
+            // Always trigger validation when button is clicked
             if (validateFormWithMessages()) {
                 registerUser()
             } else {
-                Log.w(TAG, "Form validation failed")
+                Log.w(TAG, "Form validation failed - showing field errors")
+                showToast("⚠️ Please fix the errors in the form")
             }
         }
 
@@ -200,6 +229,7 @@ class SignUpActivity : AppCompatActivity() {
                 actvBarangay.showDropDown()
             } else {
                 showToast("📍 Please select a municipality first")
+                setError(tilBarangay, "Select municipality first")
             }
         }
 
@@ -211,37 +241,69 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun setupTextChangeListeners() {
-        val editTexts = mutableListOf<EditText>()
-
-        if (::etFirstName.isInitialized) editTexts.add(etFirstName)
-        if (::etLastName.isInitialized) editTexts.add(etLastName)
-        if (::etPhone.isInitialized) editTexts.add(etPhone)
-        if (::etSex.isInitialized) editTexts.add(etSex)
-        if (::etEmail.isInitialized) editTexts.add(etEmail)
-        if (::etPassword.isInitialized) editTexts.add(etPassword)
-        if (::etConfirmPassword.isInitialized) editTexts.add(etConfirmPassword)
-
         val textWatcher = object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { validateForm() }
+            override fun afterTextChanged(s: Editable?) {
+                clearErrorsOnTextChange()
+            }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         }
 
-        editTexts.forEach {
-            it.addTextChangedListener(textWatcher)
-        }
+        // Add text watchers to all EditText fields
+        etFirstName.addTextChangedListener(textWatcher)
+        etLastName.addTextChangedListener(textWatcher)
+        etPhone.addTextChangedListener(textWatcher)
+        etSex.addTextChangedListener(textWatcher)
+        etEmail.addTextChangedListener(textWatcher)
+        etPassword.addTextChangedListener(textWatcher)
+        etConfirmPassword.addTextChangedListener(textWatcher)
 
         actvMunicipal.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { validateForm() }
+            override fun afterTextChanged(s: Editable?) {
+                clearError(tilMunicipal)
+            }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
         actvBarangay.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { validateForm() }
+            override fun afterTextChanged(s: Editable?) {
+                clearError(tilBarangay)
+            }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+    }
+
+    private fun clearErrorsOnTextChange() {
+        // Clear errors when user starts typing in any field
+        clearError(tilFirstName)
+        clearError(tilLastName)
+        clearError(tilPhone)
+        clearError(tilSex)
+        clearError(tilEmail)
+        clearError(tilPassword)
+        clearError(tilConfirmPassword)
+    }
+
+    private fun clearAllErrors() {
+        clearError(tilFirstName)
+        clearError(tilLastName)
+        clearError(tilPhone)
+        clearError(tilSex)
+        clearError(tilEmail)
+        clearError(tilPassword)
+        clearError(tilConfirmPassword)
+        clearError(tilMunicipal)
+        clearError(tilBarangay)
+    }
+
+    private fun setError(textInputLayout: TextInputLayout, message: String) {
+        textInputLayout.error = message
+    }
+
+    private fun clearError(textInputLayout: TextInputLayout) {
+        textInputLayout.error = null
     }
 
     private fun validateForm(): Boolean {
@@ -266,7 +328,6 @@ class SignUpActivity : AppCompatActivity() {
                     passwordText.length >= 6 &&
                     passwordText == confirmPasswordText
 
-            btnSignUp.isEnabled = isValid
             return isValid
         } catch (e: Exception) {
             Log.e(TAG, "Form validation error: ${e.message}")
@@ -291,92 +352,133 @@ class SignUpActivity : AppCompatActivity() {
             val selectedMunicipality = actvMunicipal.text.toString().trim()
             val selectedBarangay = actvBarangay.text.toString().trim()
 
-            // Debug log to see what values we have
-            Log.d(TAG, "Form validation - Municipality: '$selectedMunicipality', Barangay: '$selectedBarangay'")
+            // Clear all errors first
+            clearAllErrors()
+
+            var isValid = true
+            var firstErrorField: View? = null
 
             when {
                 fname.isEmpty() -> {
-                    showToast("❌ Please enter your first name")
-                    etFirstName.requestFocus()
-                    return false
+                    setError(tilFirstName, "Please enter your first name")
+                    if (firstErrorField == null) firstErrorField = etFirstName
+                    isValid = false
                 }
                 fname.length < 2 -> {
-                    showToast("❌ First name must be at least 2 characters")
-                    etFirstName.requestFocus()
-                    return false
-                }
-                lname.isEmpty() -> {
-                    showToast("❌ Please enter your last name")
-                    etLastName.requestFocus()
-                    return false
-                }
-                lname.length < 2 -> {
-                    showToast("❌ Last name must be at least 2 characters")
-                    etLastName.requestFocus()
-                    return false
-                }
-                phoneNumber.isEmpty() -> {
-                    showToast("❌ Please enter your phone number")
-                    etPhone.requestFocus()
-                    return false
-                }
-                !isValidPhoneNumber(phoneNumber) -> {
-                    showToast("❌ Please enter a valid Philippine mobile number (e.g., 09123456789)")
-                    etPhone.requestFocus()
-                    return false
-                }
-                gender.isEmpty() -> {
-                    showToast("❌ Please enter your gender (Male/Female)")
-                    etSex.requestFocus()
-                    return false
-                }
-                emailText.isEmpty() -> {
-                    showToast("❌ Please enter your email address")
-                    etEmail.requestFocus()
-                    return false
-                }
-                !android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches() -> {
-                    showToast("❌ Please enter a valid email address (e.g., example@email.com)")
-                    etEmail.requestFocus()
-                    return false
-                }
-                passwordText.isEmpty() -> {
-                    showToast("❌ Please enter a password")
-                    etPassword.requestFocus()
-                    return false
-                }
-                passwordText.length < 6 -> {
-                    showToast("🔒 Password must be at least 6 characters long")
-                    etPassword.requestFocus()
-                    return false
-                }
-                confirmPasswordText.isEmpty() -> {
-                    showToast("❌ Please confirm your password")
-                    etConfirmPassword.requestFocus()
-                    return false
-                }
-                passwordText != confirmPasswordText -> {
-                    showToast("🔒 Passwords do not match. Please make sure both passwords are the same.")
-                    etConfirmPassword.requestFocus()
-                    return false
-                }
-                selectedMunicipality.isEmpty() || selectedMunicipality == "Select Municipality" -> {
-                    showToast("📍 Please select your municipality")
-                    actvMunicipal.requestFocus()
-                    actvMunicipal.showDropDown()
-                    return false
-                }
-                selectedBarangay.isEmpty() || selectedBarangay == "Select Barangay" || selectedBarangay == "Select Municipality first" -> {
-                    showToast("📍 Please select your barangay")
-                    if (actvBarangay.isEnabled) {
-                        actvBarangay.requestFocus()
-                        actvBarangay.showDropDown()
-                    }
-                    return false
+                    setError(tilFirstName, "First name must be at least 2 characters")
+                    if (firstErrorField == null) firstErrorField = etFirstName
+                    isValid = false
                 }
             }
 
-            return true
+            when {
+                lname.isEmpty() -> {
+                    setError(tilLastName, "Please enter your last name")
+                    if (firstErrorField == null) firstErrorField = etLastName
+                    isValid = false
+                }
+                lname.length < 2 -> {
+                    setError(tilLastName, "Last name must be at least 2 characters")
+                    if (firstErrorField == null) firstErrorField = etLastName
+                    isValid = false
+                }
+            }
+
+            when {
+                phoneNumber.isEmpty() -> {
+                    setError(tilPhone, "Please enter your phone number")
+                    if (firstErrorField == null) firstErrorField = etPhone
+                    isValid = false
+                }
+                !isValidPhoneNumber(phoneNumber) -> {
+                    setError(tilPhone, "Please enter a valid Philippine mobile number (e.g., 09123456789)")
+                    if (firstErrorField == null) firstErrorField = etPhone
+                    isValid = false
+                }
+            }
+
+            when {
+                gender.isEmpty() -> {
+                    setError(tilSex, "Please enter your gender (Male/Female)")
+                    if (firstErrorField == null) firstErrorField = etSex
+                    isValid = false
+                }
+                !gender.equals("male", true) && !gender.equals("female", true) -> {
+                    setError(tilSex, "Please enter Male or Female")
+                    if (firstErrorField == null) firstErrorField = etSex
+                    isValid = false
+                }
+            }
+
+            when {
+                emailText.isEmpty() -> {
+                    setError(tilEmail, "Please enter your email address")
+                    if (firstErrorField == null) firstErrorField = etEmail
+                    isValid = false
+                }
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches() -> {
+                    setError(tilEmail, "Please enter a valid email address (e.g., example@email.com)")
+                    if (firstErrorField == null) firstErrorField = etEmail
+                    isValid = false
+                }
+            }
+
+            when {
+                passwordText.isEmpty() -> {
+                    setError(tilPassword, "Please enter a password")
+                    if (firstErrorField == null) firstErrorField = etPassword
+                    isValid = false
+                }
+                passwordText.length < 6 -> {
+                    setError(tilPassword, "Password must be at least 6 characters long")
+                    if (firstErrorField == null) firstErrorField = etPassword
+                    isValid = false
+                }
+            }
+
+            when {
+                confirmPasswordText.isEmpty() -> {
+                    setError(tilConfirmPassword, "Please confirm your password")
+                    if (firstErrorField == null) firstErrorField = etConfirmPassword
+                    isValid = false
+                }
+                passwordText != confirmPasswordText -> {
+                    setError(tilConfirmPassword, "Passwords do not match")
+                    if (firstErrorField == null) firstErrorField = etConfirmPassword
+                    isValid = false
+                }
+            }
+
+            when {
+                selectedMunicipality.isEmpty() || selectedMunicipality == "Select Municipality" -> {
+                    setError(tilMunicipal, "Please select your municipality")
+                    if (firstErrorField == null) {
+                        firstErrorField = actvMunicipal
+                        actvMunicipal.showDropDown()
+                    }
+                    isValid = false
+                }
+            }
+
+            when {
+                selectedBarangay.isEmpty() || selectedBarangay == "Select Barangay" || selectedBarangay == "Select Municipality first" -> {
+                    setError(tilBarangay, "Please select your barangay")
+                    if (firstErrorField == null && actvBarangay.isEnabled) {
+                        firstErrorField = actvBarangay
+                        actvBarangay.showDropDown()
+                    }
+                    isValid = false
+                }
+            }
+
+            // Focus on the first error field
+            firstErrorField?.let {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    it.requestFocus()
+                }, 100)
+            }
+
+            return isValid
         } catch (e: Exception) {
             Log.e(TAG, "Form validation with messages error: ${e.message}")
             showToast("❌ Form validation error. Please check your inputs.")
@@ -443,7 +545,6 @@ class SignUpActivity : AppCompatActivity() {
         Log.d(TAG, "Saving user data to Firestore for user: $userId")
         Log.d(TAG, "Data to save - First: $firstName, Last: $lastName, Phone: $phone, Sex: $sex, Email: $email, Municipality: $municipality, Barangay: $barangay")
 
-        // NEW: Using healthradarDB/users/user/auto-id structure
         val userMap = hashMapOf(
             "firstName" to firstName,
             "lastName" to lastName,
@@ -451,29 +552,26 @@ class SignUpActivity : AppCompatActivity() {
             "sex" to sex,
             "email" to email,
             "municipality" to municipality,
-            "Barangay" to barangay,
+            "barangay" to barangay,
             "createdAt" to com.google.firebase.Timestamp.now(),
-            "userId" to userId, // Store the Firebase Auth UID for reference
-            "userAuthId" to userId // Alternative field name for clarity
+            "userId" to userId,
+            "userAuthId" to userId
         )
 
-        // Debug the map before saving
         Log.d(TAG, "User map to save: $userMap")
 
-        // NEW PATH: healthradarDB/users/user/{auto-id}
         db.collection("healthradarDB")
             .document("users")
             .collection("user")
-            .add(userMap) // This creates auto-id document
+            .add(userMap)
             .addOnSuccessListener { documentReference ->
                 Log.d(TAG, "User data saved successfully to Firestore with ID: ${documentReference.id}")
-                showToast("🎉 Account created successfully! You can now login.")
+                showToast(" Account created successfully!")
 
-                // Send email verification
                 auth.currentUser?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
                     if (verificationTask.isSuccessful) {
                         Log.d(TAG, "Verification email sent")
-                        showToast("📧 Verification email sent! Please check your inbox.")
+                        showToast("Verification email sent! Please check your inbox.")
                     }
                 }
 
@@ -483,7 +581,6 @@ class SignUpActivity : AppCompatActivity() {
                 Log.e(TAG, "Failed to save user data to Firestore: ${e.message}")
                 e.printStackTrace()
 
-                // Enhanced error handling
                 when {
                     e.message?.contains("permission", ignoreCase = true) == true -> {
                         showToast("🔐 Database permission denied. Please update Firestore security rules.")
@@ -497,7 +594,6 @@ class SignUpActivity : AppCompatActivity() {
                     }
                 }
 
-                // Rollback: Delete the Firebase auth user if Firestore save fails
                 auth.currentUser?.delete()?.addOnCompleteListener { deleteTask ->
                     if (deleteTask.isSuccessful) {
                         Log.d(TAG, "Rollback: Firebase auth user deleted")

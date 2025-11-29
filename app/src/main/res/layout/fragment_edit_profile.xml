@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="@color/background">
 
     <LinearLayout
         android:orientation="vertical"
@@ -13,31 +14,68 @@
             android:id="@+id/editFirstName"
             android:hint="First Name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
 
         <EditText
             android:id="@+id/editLastName"
             android:hint="Last Name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
 
         <EditText
             android:id="@+id/editPhone"
-            android:hint="Phone"
+            android:hint="Phone Number"
+            android:inputType="phone"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
 
         <EditText
             android:id="@+id/editMunicipality"
             android:hint="Municipality"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
+
+        <EditText
+            android:id="@+id/editBarangay"
+            android:hint="Barangay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:padding="16dp"
+            android:background="@drawable/edit_text_background"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary" />
 
         <Button
             android:id="@+id/saveProfileButton"
             android:text="Save Changes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp" />
+            android:backgroundTint="@color/primary_500"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:padding="16dp"
+            android:textAllCaps="false" />
+
     </LinearLayout>
 </ScrollView>

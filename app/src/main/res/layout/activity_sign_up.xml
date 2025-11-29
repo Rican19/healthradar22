@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Header Section -->
+        <!-- Header Section (keep as is) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -83,7 +83,9 @@
                         app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
-                        app:boxCornerRadiusTopStart="8dp">
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:errorEnabled="true"
+                        app:errorTextColor="@color/error_red">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etFirstName"
@@ -109,7 +111,9 @@
                         app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
-                        app:boxCornerRadiusTopStart="8dp">
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:errorEnabled="true"
+                        app:errorTextColor="@color/error_red">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etLastName"
@@ -136,7 +140,9 @@
                     app:boxCornerRadiusBottomStart="8dp"
                     app:startIconTint="@color/black"
                     app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:errorEnabled="true"
+                    app:errorTextColor="@color/error_red">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPhone"
@@ -161,7 +167,9 @@
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:errorEnabled="true"
+                    app:errorTextColor="@color/error_red">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSex"
@@ -186,7 +194,9 @@
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:errorEnabled="true"
+                    app:errorTextColor="@color/error_red">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etEmail"
@@ -200,7 +210,6 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-
                 <!-- Password -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilPassword"
@@ -213,7 +222,9 @@
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:errorEnabled="true"
+                    app:errorTextColor="@color/error_red">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
@@ -224,7 +235,6 @@
                         android:inputType="textPassword"
                         android:textSize="14sp"
                         android:minHeight="44dp" />
-
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -240,7 +250,9 @@
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:errorEnabled="true"
+                    app:errorTextColor="@color/error_red">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etConfirmPassword"
@@ -254,71 +266,70 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-
-            <!-- Municipal & Barangay Row - Side by Side -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <!-- Municipal Dropdown -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilMunicipal"
-                    android:layout_width="0dp"
+                <!-- Municipal & Barangay Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
 
-                    app:startIconDrawable="@drawable/ic_location_city"
-
-                    app:startIconTint="@color/black"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/actvMunicipal"
-                        android:layout_width="match_parent"
+                    <!-- Municipal Dropdown -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilMunicipal"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:hint="Municipality"
-                        android:textColor="@color/black"
-                        android:inputType="none"
-                        android:textSize="14sp"
-                        android:minHeight="44dp" />
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:startIconDrawable="@drawable/ic_location_city"
+                        app:startIconTint="@color/black"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:errorEnabled="true"
+                        app:errorTextColor="@color/error_red">
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/actvMunicipal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Municipality"
+                            android:textColor="@color/black"
+                            android:inputType="none"
+                            android:textSize="14sp"
+                            android:minHeight="44dp" />
 
-                <!-- Barangay Dropdown -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilBarangay"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                    app:startIconDrawable="@android:drawable/ic_menu_mylocation"
-                    app:startIconTint="@color/black"
-                    app:boxCornerRadiusBottomEnd="8dp"
-                    app:boxCornerRadiusBottomStart="8dp"
-
-                    app:boxCornerRadiusTopEnd="8dp"
-                    app:boxCornerRadiusTopStart="8dp">
-
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/actvBarangay"
-                        android:layout_width="match_parent"
-                        android:textColor="@color/black"
+                    <!-- Barangay Dropdown -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilBarangay"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:hint="Barangay"
-                        android:inputType="none"
-                        android:textSize="14sp"
-                        android:minHeight="44dp"
-                        android:enabled="false" />
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:startIconDrawable="@android:drawable/ic_menu_mylocation"
+                        app:startIconTint="@color/black"
+                        app:boxCornerRadiusBottomEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:errorEnabled="true"
+                        app:errorTextColor="@color/error_red">
 
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/actvBarangay"
+                            android:layout_width="match_parent"
+                            android:textColor="@color/black"
+                            android:layout_height="wrap_content"
+                            android:hint="Barangay"
+                            android:inputType="none"
+                            android:textSize="14sp"
+                            android:minHeight="44dp"
+                            android:enabled="false" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
 
                 <!-- Progress Bar -->
                 <ProgressBar
@@ -342,7 +353,6 @@
             android:textSize="15sp"
             android:textStyle="bold"
             app:cornerRadius="14dp"
-            app:icon="@drawable/ic_person_add"
             app:iconGravity="textStart"
             app:iconPadding="6dp"
             android:layout_marginBottom="12dp" />

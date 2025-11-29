@@ -1,70 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:orientation="vertical"
+    android:background="@color/light_background">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <!-- Toolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        android:elevation="4dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_color"
+        app:title="Health News"
+        app:menu="@menu/news_menu" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/white"
-            app:title="Health News"
-            app:titleTextColor="@color/black"
-            app:menu="@menu/news_menu" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
+    <!-- Swipe Refresh Layout -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <LinearLayout
+        <!-- Main Content -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
+            <!-- Progress Bar -->
             <ProgressBar
                 android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_centerInParent="true"
                 android:visibility="gone" />
 
+            <!-- RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewNews"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:padding="8dp" />
+                android:visibility="visible" />
 
-            <include
+            <!-- Error Layout (Optional) -->
+            <LinearLayout
                 android:id="@+id/errorLayout"
-                layout="@layout/layout_error"
-                android:visibility="gone" />
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone"
+                android:background="@color/light_background">
 
-        </LinearLayout>
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/ic_error_outline"
+                    android:layout_marginBottom="24dp"
+                    app:tint="@color/medium_gray" />
+
+                <TextView
+                    android:id="@+id/errorTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Error Loading News"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textColor="@color/dark_text"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/errorMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Please check your connection and try again."
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:textColor="@color/medium_gray"
+                    android:layout_marginBottom="24dp" />
+
+                <Button
+                    android:id="@+id/buttonRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Try Again"
+                    android:textAllCaps="false"
+                    android:paddingHorizontal="32dp"
+                    android:paddingVertical="12dp" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- Floating Action Button (Optional) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabScrollToTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:visibility="gone"
-        app:srcCompat="@android:drawable/arrow_up_float"
+        app:backgroundTint="@color/primary_color"
+        app:srcCompat="@drawable/ic_arrow_upward"
         app:tint="@color/white" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>
