@@ -49,26 +49,8 @@
             android:layout_marginBottom="8dp"
             android:importantForAccessibility="yes" />
 
-        <!-- Scrollable Disease List - FIXED -->
-        <ScrollView
-            android:id="@+id/diseaseScrollView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true"
-            android:scrollbars="vertical"
-            android:contentDescription="@string/disease_list_content_description"
-            android:importantForAccessibility="yes">
-
-            <LinearLayout
-                android:id="@+id/diseaseContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:minHeight="100dp" />
-
-        </ScrollView>
-
     </LinearLayout>
+
+
 
 </androidx.cardview.widget.CardView>

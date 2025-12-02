@@ -1,7 +1,10 @@
 package com.capstone.healthradar
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -10,8 +13,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -43,12 +46,13 @@ class HomeFragment : Fragment() {
     private lateinit var leftArrow: ImageView
     private lateinit var rightArrow: ImageView
     private lateinit var swipeHint: TextView
+    private lateinit var monthYearTextView: TextView
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val TAG = "HomeFragment"
 
-    // Improved color palette for white background
+    // Color palette for pie chart and disease breakdown
     private val pieColors = listOf(
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FECA57",
         "#FF9FF3", "#54A0FF", "#5F27CD", "#00D2D3", "#FF9F43",
@@ -56,22 +60,18 @@ class HomeFragment : Fragment() {
     ).map { it.toColorInt() }
 
     private val municipalities = listOf("Mandaue", "Liloan", "Consolacion")
-    private val allWeeks = listOf("Week 1", "Week 2", "Week 3", "Week 4")
     private var currentMunicipalityIndex = 0
     private var currentWeekFilter = "Week 1"
+    private var currentMonthYear = ""
 
-    // Store current disease list for each municipality
-    private val currentDiseaseLists = mutableMapOf<Int, List<PagerDiseaseItem>>()
-    private var currentDiseaseLabels: List<String> = emptyList()
+    // Store disease data with colors for each municipality
+    private val municipalityDiseaseData = mutableMapOf<Int, List<DiseaseItem>>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-
-        // Set white background for the entire fragment
-        view.setBackgroundColor(Color.WHITE)
 
         bindViews(view)
         initUi()
@@ -86,121 +86,159 @@ class HomeFragment : Fragment() {
         municipalityIndicator = root.findViewById(R.id.municipalityIndicator)
         userNameTv = root.findViewById(R.id.userName)
         weekSpinner = root.findViewById(R.id.weekSpinner)
-
-        // New views for improved navigation
         leftArrow = root.findViewById(R.id.leftArrow)
         rightArrow = root.findViewById(R.id.rightArrow)
         swipeHint = root.findViewById(R.id.swipeHint)
+        monthYearTextView = root.findViewById(R.id.monthYearTextView)
     }
 
     private fun initUi() {
         setupCharts()
         setupMunicipalityIndicator()
         setupWeekSpinner()
-        loadBarChartData() // Load initial bar chart data
+        updateMonthYearDisplay()
+        loadBarChartData()
+    }
+
+    // Helper function to get colors dynamically
+    private fun getPrimaryTextColor(): Int {
+        return if (isDarkMode()) {
+            Color.WHITE  // White text in dark mode
+        } else {
+            Color.BLACK  // Black text in light mode
+        }
+    }
+
+    private fun getSecondaryTextColor(): Int {
+        return if (isDarkMode()) {
+            Color.parseColor("#CCCCCC")  // Light gray in dark mode
+        } else {
+            Color.parseColor("#666666")  // Dark gray in light mode
+        }
+    }
+
+    private fun getPrimaryColor(): Int {
+        // Your blue color (#6366F1)
+        return Color.parseColor("#6366F1")
+    }
+
+    private fun getCardBackgroundColor(): Int {
+        return if (isDarkMode()) {
+            Color.parseColor("#1E1E1E") // Dark gray for dark mode
+        } else {
+            Color.WHITE // White for light mode
+        }
+    }
+
+    private fun getSurfaceColor(): Int {
+        return if (isDarkMode()) {
+            Color.parseColor("#2D2D2D") // Dark gray for dark mode
+        } else {
+            Color.WHITE // White for light mode
+        }
+    }
+
+    private fun isDarkMode(): Boolean {
+        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return currentNightMode == Configuration.UI_MODE_NIGHT_YES
     }
 
     private fun setupWeekSpinner() {
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, allWeeks).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val currentWeek = getCurrentWeekOfMonth()
+        val weekOptions = mutableListOf<String>()
+        for (week in 1..4) {
+            if (week <= currentWeek) {
+                weekOptions.add("Week $week")
+            }
         }
-        weekSpinner.adapter = adapter
 
-        weekSpinner.setPopupBackgroundResource(android.R.color.transparent)
+        val latestWeek = if (currentWeek > 4) 4 else currentWeek
+        currentWeekFilter = "Week $latestWeek"
+
+        val adapter = object : ArrayAdapter<String>(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            weekOptions
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent)
+                val textView = view.findViewById<TextView>(android.R.id.text1)
+                textView.setTextColor(getPrimaryTextColor())
+                textView.textSize = 14f
+                textView.setTypeface(null, Typeface.BOLD)
+                textView.setBackgroundColor(Color.TRANSPARENT)
+
+                val itemText = getItem(position) ?: ""
+                val weekNum = itemText.replace("Week ", "").toIntOrNull()
+                val isCurrentWeek = weekNum == currentWeek
+
+                textView.text = if (isCurrentWeek) {
+                    "$itemText (Current) ▼"
+                } else {
+                    "$itemText ▼"
+                }
+
+                return view
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent)
+                val textView = view.findViewById<TextView>(android.R.id.text1)
+                textView.setTextColor(getPrimaryTextColor())
+                textView.textSize = 14f
+                textView.setTypeface(null, Typeface.NORMAL)
+                textView.setPadding(dpToPx(16), dpToPx(12), dpToPx(16), dpToPx(12))
+                textView.setBackgroundColor(getSurfaceColor())
+
+                val itemText = getItem(position) ?: ""
+                val weekNum = itemText.replace("Week ", "").toIntOrNull()
+                val isCurrentWeek = weekNum == currentWeek
+
+                textView.text = if (isCurrentWeek) {
+                    "$itemText (Current)"
+                } else {
+                    itemText
+                }
+
+                return view
+            }
+        }
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        weekSpinner.adapter = adapter
+        weekSpinner.setBackgroundColor(Color.TRANSPARENT)
 
         weekSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                currentWeekFilter = allWeeks[position]
-                refreshChartData()
-                (view as? TextView)?.setTextColor(Color.parseColor("#333333")) // Dark text
+                val items = weekOptions
+                if (position < items.size) {
+                    val selectedText = items[position]
+                    currentWeekFilter = selectedText.replace(" (Current)", "")
+                    refreshChartData()
+                }
             }
+
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-        (weekSpinner.selectedView as? TextView)?.setTextColor(Color.parseColor("#333333"))
-    }
 
-    private fun loadUserName() {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userId = currentUser.uid
-
-            // Fetch user data from Firestore to get first and last name
-            db.collection("healthradarDB")
-                .document("users")
-                .collection("user")
-                .whereEqualTo("userAuthId", userId)
-                .get()
-                .addOnSuccessListener { querySnapshot ->
-                    if (!querySnapshot.isEmpty) {
-                        val document = querySnapshot.documents[0]
-                        val firstName = document.getString("firstName") ?: ""
-                        val lastName = document.getString("lastName") ?: ""
-
-                        if (firstName.isNotEmpty() && lastName.isNotEmpty()) {
-                            userNameTv.text = "Hello, $firstName $lastName"
-                        } else if (firstName.isNotEmpty()) {
-                            userNameTv.text = "Hello, $firstName"
-                        } else if (lastName.isNotEmpty()) {
-                            userNameTv.text = "Hello, $lastName"
-                        } else {
-                            // Fallback to email if no name found
-                            val email = currentUser.email
-                            val name = email?.substringBefore('@') ?: "User"
-                            userNameTv.text = "Hello, $name"
-                        }
-                    } else {
-                        // Fallback if no user document found
-                        val email = currentUser.email
-                        val name = email?.substringBefore('@') ?: "User"
-                        userNameTv.text = "Hello, $name"
-                    }
-
-                    // Style the greeting text
-                    userNameTv.setTextColor(Color.parseColor("#FFFFFF")) // Dark blue-gray
-                    userNameTv.textSize = 18f
-                    userNameTv.setTypeface(null, Typeface.BOLD)
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Error loading user data", e)
-                    // Fallback on error
-                    val email = currentUser.email
-                    val name = email?.substringBefore('@') ?: "User"
-                    userNameTv.text = "Hello, $name"
-                    userNameTv.setTextColor(Color.parseColor("#FFFFFF"))
-                    userNameTv.textSize = 18f
-                    userNameTv.setTypeface(null, Typeface.BOLD)
-                }
-        } else {
-            userNameTv.text = "Hello, User"
-            userNameTv.setTextColor(Color.parseColor("#FFFFFF"))
-            userNameTv.textSize = 18f
-            userNameTv.setTypeface(null, Typeface.BOLD)
+        weekSpinner.post {
+            val latestWeekIndex = weekOptions.indexOfFirst {
+                it.replace("Week ", "").toIntOrNull() == latestWeek
+            }
+            if (latestWeekIndex >= 0) {
+                weekSpinner.setSelection(latestWeekIndex)
+            }
         }
     }
 
     private fun refreshChartData() {
-        loadBarChartData() // Reload bar chart with current municipality and week
+        loadBarChartData()
         (pieChartPager.adapter as? PieChartPagerAdapter)?.refreshCurrentPage()
     }
 
     private fun setupPieChartPager() {
         pieChartPager.adapter = PieChartPagerAdapter()
         pieChartPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-
-        // Add page transform animation for better visual feedback
-        pieChartPager.setPageTransformer { page, position ->
-            when {
-                position < -1 -> // [-Infinity,-1)
-                    page.alpha = 0.1f
-                position <= 1 -> { // [-1,1]
-                    page.alpha = 1 - 0.3f * abs(position)
-                    page.scaleX = 1 - 0.1f * abs(position)
-                    page.scaleY = 1 - 0.1f * abs(position)
-                }
-                else -> // (1,+Infinity]
-                    page.alpha = 0.1f
-            }
-        }
 
         pieChartPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -209,18 +247,8 @@ class HomeFragment : Fragment() {
                 updateNavigationArrows()
                 refreshChartData()
             }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                // Show/hide swipe hint based on user interaction
-                if (state == ViewPager2.SCROLL_STATE_DRAGGING) {
-                    swipeHint.animate().alpha(0f).setDuration(200).start()
-                } else if (state == ViewPager2.SCROLL_STATE_IDLE) {
-                    swipeHint.animate().alpha(1f).setDuration(500).start()
-                }
-            }
         })
 
-        // Set up arrow click listeners
         leftArrow.setOnClickListener {
             if (currentMunicipalityIndex > 0) {
                 pieChartPager.currentItem = currentMunicipalityIndex - 1
@@ -235,47 +263,11 @@ class HomeFragment : Fragment() {
 
         updateMunicipalityIndicator()
         updateNavigationArrows()
-
-        // Auto-hide swipe hint after 3 seconds
-        swipeHint.postDelayed({
-            swipeHint.animate().alpha(0.5f).setDuration(500).start()
-        }, 3000)
     }
 
     private fun updateNavigationArrows() {
-        // Update left arrow visibility
-        if (currentMunicipalityIndex == 0) {
-            leftArrow.visibility = View.INVISIBLE
-        } else {
-            leftArrow.visibility = View.VISIBLE
-            leftArrow.alpha = 1f
-            leftArrow.setColorFilter(Color.parseColor("#5A4CE1")) // Purple color
-        }
-
-        // Update right arrow visibility
-        if (currentMunicipalityIndex == municipalities.size - 1) {
-            rightArrow.visibility = View.INVISIBLE
-        } else {
-            rightArrow.visibility = View.VISIBLE
-            rightArrow.alpha = 1f
-            rightArrow.setColorFilter(Color.parseColor("#5A4CE1")) // Purple color
-        }
-
-        // Add pulse animation to arrows when available
-        if (currentMunicipalityIndex < municipalities.size - 1) {
-            rightArrow.animate()
-                .scaleX(1.1f)
-                .scaleY(1.1f)
-                .setDuration(500)
-                .withEndAction {
-                    rightArrow.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(500)
-                        .start()
-                }
-                .start()
-        }
+        leftArrow.visibility = if (currentMunicipalityIndex == 0) View.INVISIBLE else View.VISIBLE
+        rightArrow.visibility = if (currentMunicipalityIndex == municipalities.size - 1) View.INVISIBLE else View.VISIBLE
     }
 
     private fun setupMunicipalityIndicator() {
@@ -285,9 +277,7 @@ class HomeFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(dpToPx(12), dpToPx(12)).apply {
                     marginEnd = dpToPx(8)
                 }
-                setBackgroundColor(if (i == currentMunicipalityIndex) Color.parseColor("#5A4CE1") else Color.parseColor("#E0E0E0"))
-                // Add rounded corners
-                background = resources.getDrawable(R.drawable.indicator_dot, null)
+                setBackgroundColor(if (i == currentMunicipalityIndex) getPrimaryColor() else Color.parseColor("#E0E0E0"))
             }
             municipalityIndicator.addView(dot)
         }
@@ -296,7 +286,54 @@ class HomeFragment : Fragment() {
     private fun updateMunicipalityIndicator() {
         for (i in 0 until municipalityIndicator.childCount) {
             val dot = municipalityIndicator.getChildAt(i)
-            dot.setBackgroundColor(if (i == currentMunicipalityIndex) Color.parseColor("#5A4CE1") else Color.parseColor("#E0E0E0"))
+            dot.setBackgroundColor(if (i == currentMunicipalityIndex) getPrimaryColor() else Color.parseColor("#E0E0E0"))
+        }
+    }
+
+    private fun updateMonthYearDisplay() {
+        val calendar = Calendar.getInstance()
+        val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        currentMonthYear = monthFormat.format(calendar.time)
+        val currentWeek = getCurrentWeekOfMonth()
+        monthYearTextView.text = "$currentMonthYear • Week $currentWeek"
+        monthYearTextView.setTextColor(getPrimaryTextColor())
+        monthYearTextView.textSize = 16f
+        monthYearTextView.setTypeface(null, Typeface.BOLD)
+    }
+
+    private fun loadUserName() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            db.collection("healthradarDB")
+                .document("users")
+                .collection("user")
+                .whereEqualTo("userAuthId", userId)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    if (!querySnapshot.isEmpty) {
+                        val document = querySnapshot.documents[0]
+                        val firstName = document.getString("firstName") ?: ""
+                        val lastName = document.getString("lastName") ?: ""
+                        userNameTv.text = if (firstName.isNotEmpty() && lastName.isNotEmpty()) {
+                            "Hello, $firstName $lastName"
+                        } else if (firstName.isNotEmpty()) {
+                            "Hello, $firstName"
+                        } else {
+                            "Hello, ${currentUser.email?.substringBefore('@') ?: "User"}"
+                        }
+                    } else {
+                        userNameTv.text = "Hello, ${currentUser.email?.substringBefore('@') ?: "User"}"
+                    }
+                    userNameTv.setTextColor(getPrimaryTextColor())
+                    userNameTv.textSize = 18f
+                    userNameTv.setTypeface(null, Typeface.BOLD)
+                }
+        } else {
+            userNameTv.text = "Hello, User"
+            userNameTv.setTextColor(getPrimaryTextColor())
+            userNameTv.textSize = 18f
+            userNameTv.setTypeface(null, Typeface.BOLD)
         }
     }
 
@@ -308,45 +345,44 @@ class HomeFragment : Fragment() {
         barChart.apply {
             setBackgroundColor(Color.TRANSPARENT)
             description.isEnabled = false
-            setTouchEnabled(false) // Disable touch interactions including click
-            isDragEnabled = true // Enable dragging for horizontal scrolling
+            setTouchEnabled(true)
+            isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(false)
             setDrawBarShadow(false)
             setDrawValueAboveBar(true)
             setDrawGridBackground(false)
 
-            // X-axis customization for disease names
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
                 setDrawAxisLine(true)
-                axisLineColor = Color.WHITE
+                axisLineColor = getPrimaryTextColor()
                 axisLineWidth = 1f
-                textColor = Color.WHITE
+                textColor = getPrimaryTextColor()
                 textSize = 11f
                 granularity = 1f
-                setLabelCount(10, false) // Show more labels
-                labelRotationAngle = -45f // Rotate labels for better readability
+                setLabelCount(5, true)
+                labelRotationAngle = 0f
                 setCenterAxisLabels(false)
+                setAvoidFirstLastClipping(false)
+                isGranularityEnabled = true
             }
 
-            // Left Y-axis customization
             axisLeft.apply {
                 setDrawGridLines(true)
-                gridColor = Color.parseColor("#333333")
+                gridColor = if (isDarkMode()) Color.parseColor("#333333") else Color.parseColor("#E0E0E0")
                 gridLineWidth = 0.8f
                 setDrawAxisLine(true)
-                axisLineColor = Color.WHITE
+                axisLineColor = getPrimaryTextColor()
                 axisLineWidth = 1f
                 setDrawLabels(true)
-                textColor = Color.WHITE
+                textColor = getPrimaryTextColor()
                 textSize = 10f
                 axisMinimum = 0f
                 granularity = 1f
             }
 
-            // Right Y-axis customization
             axisRight.apply {
                 setDrawGridLines(false)
                 setDrawAxisLine(false)
@@ -355,16 +391,9 @@ class HomeFragment : Fragment() {
             }
 
             legend.isEnabled = false
-
             setNoDataText("No data available for selected week")
-            setNoDataTextColor(Color.WHITE)
+            setNoDataTextColor(getPrimaryTextColor())
             setNoDataTextTypeface(Typeface.DEFAULT_BOLD)
-
-            // Add extra right offset to accommodate scrolling
-            setExtraOffsets(0f, 0f, 20f, 0f)
-
-            // Remove click listener for bars
-            setOnChartValueSelectedListener(null)
         }
     }
 
@@ -373,47 +402,28 @@ class HomeFragment : Fragment() {
         val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
 
         db.collection("healthradarDB").document("centralizedData").collection("allCases")
+            .whereEqualTo("Municipality", currentMunicipality)
+            .whereEqualTo("Week", weekNum)
             .get()
             .addOnSuccessListener { snapshot ->
                 try {
-                    val docs = snapshot.documents.filter {
-                        val docMunicipality = it.getString("Municipality") ?: ""
-                        docMunicipality.replace("-", "")?.lowercase() ==
-                                currentMunicipality.replace("-", "").lowercase()
-                    }
-
-                    // Group by disease name
                     val diseaseMap = mutableMapOf<String, Float>()
-
-                    // Process documents for the selected week
-                    for (doc in docs) {
-                        val docWeekNum = when (val w = doc.get("Week")) {
-                            is Number -> w.toInt()
-                            is String -> w.toIntOrNull() ?: -1
-                            else -> -1
-                        }
-
-                        // Only process documents for the selected week
-                        if (docWeekNum == weekNum) {
+                    for (doc in snapshot.documents) {
+                        val dateStr = doc.getString("DateReported") ?: doc.getString("uploadedAt")
+                        if (dateStr != null && isDateFromCurrentMonth(dateStr)) {
                             val cases = when (val raw = doc.get("CaseCount")) {
                                 is Number -> raw.toFloat()
                                 is String -> raw.toFloatOrNull() ?: 0f
                                 else -> 0f
                             }
-
                             val diseaseName = doc.getString("DiseaseName") ?: "Unknown"
-
                             if (cases > 0f && diseaseName != "Unknown") {
-                                // Add to disease totals (no day breakdown needed)
                                 diseaseMap[diseaseName] = (diseaseMap[diseaseName] ?: 0f) + cases
                             }
                         }
                     }
 
-                    // Sort diseases by count (descending)
                     val sortedDiseases = diseaseMap.entries.sortedByDescending { it.value }
-
-                    // Create entries and labels
                     val entries = ArrayList<BarEntry>()
                     val diseaseLabels = ArrayList<String>()
 
@@ -422,16 +432,12 @@ class HomeFragment : Fragment() {
                         diseaseLabels.add(entry.key)
                     }
 
-                    // Store current disease labels
-                    currentDiseaseLabels = diseaseLabels
-
-                    // Update X-axis with disease names
                     barChart.xAxis.valueFormatter = IndexAxisValueFormatter(diseaseLabels)
                     barChart.xAxis.labelCount = diseaseLabels.size
 
-                    val dataSet = BarDataSet(entries, "Disease Cases - $currentMunicipality ($currentWeekFilter)").apply {
-                        color = Color.parseColor("#5A4CE1")
-                        valueTextColor = Color.WHITE
+                    val dataSet = BarDataSet(entries, "").apply {
+                        color = getPrimaryColor()
+                        valueTextColor = getPrimaryTextColor()
                         valueTextSize = 10f
                         setDrawValues(true)
                         valueFormatter = object : ValueFormatter() {
@@ -442,68 +448,45 @@ class HomeFragment : Fragment() {
                     }
 
                     val data = BarData(dataSet).apply {
-                        barWidth = 0.4f
+                        barWidth = 0.6f
                         setValueTextSize(10f)
                     }
 
-                    // Set the data and refresh
                     barChart.data = data
-
-                    // Adjust X-axis range based on number of diseases
-                    barChart.xAxis.axisMinimum = -0.5f
-                    barChart.xAxis.axisMaximum = (diseaseLabels.size - 0.5f).coerceAtLeast(0.5f)
-
                     barChart.invalidate()
-
-                    // Animations
                     barChart.animateY(1000, Easing.EaseInOutCubic)
-
-                    // Show message if no data
-                    val totalCases = diseaseMap.values.sum()
-                    if (totalCases == 0f) {
-                        barChart.clear()
-                        barChart.setNoDataText("No cases found for $currentMunicipality in $currentWeekFilter")
-                    }
-
-                    Log.d(TAG, "Loaded bar chart data for $currentMunicipality - $currentWeekFilter: ${diseaseMap.size} diseases")
 
                 } catch (ex: Exception) {
                     Log.e(TAG, "Error loading bar chart data", ex)
-                    barChart.clear()
-                    barChart.setNoDataText("Error loading data for $currentMunicipality")
                 }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "loadBarChartData failed", e)
-                barChart.clear()
-                barChart.setNoDataText("Failed to load data")
             }
     }
 
-    private fun getDayOfWeekFromDate(dateStr: String): Int? {
+    private fun isDateFromCurrentMonth(dateString: String?): Boolean {
+        if (dateString.isNullOrEmpty()) return false
         return try {
-            if (dateStr.isNotEmpty()) {
-                val formats = listOf("yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yyyy", "yyyy/MM/dd")
-                for (format in formats) {
-                    try {
-                        val sdf = SimpleDateFormat(format, Locale.getDefault())
-                        val date = sdf.parse(dateStr)
-                        if (date != null) {
-                            val calendar = Calendar.getInstance()
-                            calendar.time = date
-                            // Convert to 0-6 where 0=Monday, 6=Sunday
-                            val day = calendar.get(Calendar.DAY_OF_WEEK) - 2
-                            return if (day < 0) 6 else day
-                        }
-                    } catch (e: Exception) {
-                        continue
-                    }
-                }
-            }
-            0 // Default to Monday if no date or parsing fails
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+            val date = dateFormat.parse(dateString) ?: return false
+
+            val calendar = Calendar.getInstance()
+            val currentMonth = calendar.get(Calendar.MONTH)
+            val currentYear = calendar.get(Calendar.YEAR)
+
+            calendar.time = date
+            val docMonth = calendar.get(Calendar.MONTH)
+            val docYear = calendar.get(Calendar.YEAR)
+
+            docMonth == currentMonth && docYear == currentYear
         } catch (e: Exception) {
-            0 // Default to Monday if any error
+            false
         }
+    }
+
+    private fun getCurrentWeekOfMonth(): Int {
+        val calendar = Calendar.getInstance()
+        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
+        return (dayOfMonth - 1) / 7 + 1
     }
 
     private fun setupPieChart(pieChart: PieChart, diseaseContainer: LinearLayout, position: Int) {
@@ -523,7 +506,7 @@ class HomeFragment : Fragment() {
             minAngleForSlices = 15f
             setTouchEnabled(true)
             setNoDataText("Loading data...")
-            setNoDataTextColor(Color.BLACK) // Changed to black
+            setNoDataTextColor(getPrimaryTextColor())
             setDrawSliceText(false)
 
             setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
@@ -542,20 +525,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun highlightDiseaseInList(sliceIndex: Int, diseaseContainer: LinearLayout, municipalityPosition: Int) {
-        val diseaseList = currentDiseaseLists[municipalityPosition] ?: return
+        val diseaseList = municipalityDiseaseData[municipalityPosition] ?: return
 
         if (sliceIndex < diseaseList.size) {
             removeHighlightFromDiseaseList(diseaseContainer)
-
             val selectedView = diseaseContainer.getChildAt(sliceIndex)
-            selectedView?.setBackgroundColor(Color.parseColor("#F0F4FF")) // Light blue highlight
-
-            diseaseContainer.post {
-                selectedView?.let {
-                    val scrollView = diseaseContainer.parent as? ScrollView
-                    scrollView?.smoothScrollTo(0, it.top)
-                }
-            }
+            selectedView?.setBackgroundColor(Color.parseColor("#3A3A3A"))
         }
     }
 
@@ -567,28 +542,28 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadPieChartData(municipality: String, pieChart: PieChart, diseaseContainer: LinearLayout, position: Int) {
+        val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
+
         db.collection("healthradarDB").document("centralizedData").collection("allCases")
+            .whereEqualTo("Municipality", municipality)
+            .whereEqualTo("Week", weekNum)
             .get()
             .addOnSuccessListener { snapshot ->
                 try {
                     val diseaseTotals = mutableMapOf<String, Float>()
-
-                    val municipalDocs = snapshot.documents.filter { doc ->
-                        val docMunicipality = doc.getString("Municipality") ?: ""
-                        docMunicipality.replace("-", "")?.lowercase() ==
-                                municipality.replace("-", "").lowercase()
-                    }
-
-                    for (doc in municipalDocs) {
-                        val disease = doc.getString("DiseaseName") ?: "Unknown"
-                        if (disease.isNotBlank() && disease != "Unknown") {
-                            val cases = when (val raw = doc.get("CaseCount")) {
-                                is Number -> raw.toFloat()
-                                is String -> raw.toFloatOrNull() ?: 0f
-                                else -> 0f
-                            }
-                            if (cases > 0f) {
-                                diseaseTotals[disease] = (diseaseTotals[disease] ?: 0f) + cases
+                    for (doc in snapshot.documents) {
+                        val dateStr = doc.getString("DateReported") ?: doc.getString("uploadedAt")
+                        if (dateStr != null && isDateFromCurrentMonth(dateStr)) {
+                            val disease = doc.getString("DiseaseName") ?: "Unknown"
+                            if (disease.isNotBlank() && disease != "Unknown") {
+                                val cases = when (val raw = doc.get("CaseCount")) {
+                                    is Number -> raw.toFloat()
+                                    is String -> raw.toFloatOrNull() ?: 0f
+                                    else -> 0f
+                                }
+                                if (cases > 0f) {
+                                    diseaseTotals[disease] = (diseaseTotals[disease] ?: 0f) + cases
+                                }
                             }
                         }
                     }
@@ -603,25 +578,30 @@ class HomeFragment : Fragment() {
                     val total = sorted.sumOf { it.value.toDouble() }.toFloat()
 
                     val entries = ArrayList<PieEntry>()
-                    val diseaseList = mutableListOf<PagerDiseaseItem>()
+                    val diseaseList = mutableListOf<DiseaseItem>()
 
-                    for ((disease, totalCases) in sorted) {
+                    // Create pie chart entries and disease list items with matching colors
+                    for ((index, entry) in sorted.withIndex()) {
+                        val disease = entry.key
+                        val totalCases = entry.value
                         entries.add(PieEntry(totalCases, disease))
+
+                        // Calculate percentage
                         val percent = if (total > 0f) (totalCases / total * 100f) else 0f
                         val percentInt = percent.roundToInt().coerceAtLeast(0)
 
-                        diseaseList.add(PagerDiseaseItem(
-                            disease,
-                            totalCases.roundToInt(),
-                            percentInt,
-                            pieColors[diseaseList.size % pieColors.size]
-                        ))
+                        // Assign color from palette - same color for pie slice and disease item
+                        val color = pieColors[index % pieColors.size]
+
+                        diseaseList.add(DiseaseItem(disease, totalCases.roundToInt(), percentInt, color))
                     }
 
-                    currentDiseaseLists[position] = diseaseList
+                    // Store disease data for this municipality
+                    municipalityDiseaseData[position] = diseaseList
 
+                    // Create pie chart dataset with colors
                     val ds = PieDataSet(entries, "").apply {
-                        colors = pieColors.take(entries.size)
+                        colors = diseaseList.map { it.color }
                         valueTextColor = Color.TRANSPARENT
                         valueTextSize = 0f
                         sliceSpace = 2f
@@ -642,45 +622,57 @@ class HomeFragment : Fragment() {
                     updateDiseaseList(emptyList(), diseaseContainer)
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "loadPieChart failed", e)
-                pieChart.clear()
-                updateDiseaseList(emptyList(), diseaseContainer)
-            }
     }
 
-    private fun updateDiseaseList(diseaseList: List<PagerDiseaseItem>, container: LinearLayout) {
+    private fun updateDiseaseList(diseaseList: List<DiseaseItem>, container: LinearLayout) {
         container.removeAllViews()
 
         if (diseaseList.isEmpty()) {
             val emptyText = TextView(requireContext()).apply {
-                text = getString(R.string.no_disease_data)
+                text = "No disease data available"
                 textSize = 14f
-                setTextColor(Color.parseColor("#888888"))
+                setTextColor(getSecondaryTextColor())
                 gravity = Gravity.CENTER
                 setPadding(0, dpToPx(20), 0, 0)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-                contentDescription = getString(R.string.no_disease_data)
+                contentDescription = "No disease data available"
             }
             container.addView(emptyText)
             return
         }
 
-        for (item in diseaseList) {
-            container.addView(createDiseaseItem(item))
+        // Create scroll hint text for accessibility
+        if (diseaseList.size > 5) {
+            val scrollHint = TextView(requireContext()).apply {
+                text = "Scroll down to see more diseases"
+                textSize = 11f
+                setTextColor(getSecondaryTextColor())
+                gravity = Gravity.CENTER
+                setPadding(0, 0, 0, dpToPx(8))
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                contentDescription = "Scroll down to see more diseases"
+            }
+            container.addView(scrollHint)
         }
 
-        // Force scrollable behavior - find the parent ScrollView safely
-        container.post {
-            val scrollView = container.parent as? ScrollView
-            scrollView?.isVerticalScrollBarEnabled = true
-            scrollView?.scrollTo(0, 0)
-            // Set accessibility for the scroll view
-            scrollView?.contentDescription = "Scrollable list of diseases for ${municipalities.getOrNull(currentMunicipalityIndex) ?: "current municipality"}"
+        // Add disease items
+        for ((index, item) in diseaseList.withIndex()) {
+            container.addView(createDiseaseItem(item, index, diseaseList.size))
         }
+
+        // Add some bottom padding to ensure scrolling works well
+        val paddingView = View(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dpToPx(20)
+            )
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        container.addView(paddingView)
     }
 
-    private fun createDiseaseItem(item: PagerDiseaseItem): View {
+    private fun createDiseaseItem(item: DiseaseItem, index: Int, totalItems: Int): View {
+        // Create the main container
         val container = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -692,42 +684,55 @@ class HomeFragment : Fragment() {
                 bottomMargin = dpToPx(6)
             }
             setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(8))
-            background = null // Ensure no background initially
+            background = null
+            isClickable = true
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-            contentDescription = getString(R.string.disease_item_content_description, item.disease, item.combinedCases)
+            contentDescription = "${item.disease}, ${item.cases} cases, ${item.percent} percent of total"
         }
 
-        val colorView = View(requireContext()).apply {
-            setBackgroundColor(item.colorInt)
+        // Create the colored dot - THIS WILL MATCH THE PIE CHART SLICE COLOR
+        val colorDot = View(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(dpToPx(12), dpToPx(12)).apply {
                 marginEnd = dpToPx(12)
             }
+
+            // Create a circular shape with the exact color from the pie chart
+            val gradientDrawable = GradientDrawable()
+            gradientDrawable.shape = GradientDrawable.OVAL
+            gradientDrawable.setColor(item.color) // Use the color from DiseaseItem
+            gradientDrawable.cornerRadius = dpToPx(6).toFloat()
+            background = gradientDrawable
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            // Add rounded corners
-            background = resources.getDrawable(R.drawable.indicator_dot, null)
         }
 
-        val nameTv = TextView(requireContext()).apply {
+        // Create disease name TextView
+        val diseaseName = TextView(requireContext()).apply {
             text = item.disease
-            textSize = 13f
-            setTextColor(Color.BLACK) // Changed to black
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            textSize = 14f
+            setTextColor(getPrimaryTextColor())
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
             setSingleLine(true)
             ellipsize = TextUtils.TruncateAt.END
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
 
-        val casesTv = TextView(requireContext()).apply {
-            text = "${item.combinedCases} cases"
+        // Create cases count TextView
+        val casesCount = TextView(requireContext()).apply {
+            text = "${item.cases} cases (${item.percent}%)"
             textSize = 12f
-            setTextColor(Color.parseColor("#5A4CE1")) // Primary purple
+            setTextColor(getSecondaryTextColor())
             setTypeface(null, Typeface.BOLD)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
 
-        container.addView(colorView)
-        container.addView(nameTv)
-        container.addView(casesTv)
+        // Add views to container
+        container.addView(colorDot)
+        container.addView(diseaseName)
+        container.addView(casesCount)
 
         return container
     }
@@ -737,11 +742,11 @@ class HomeFragment : Fragment() {
         return (dp * density).toInt()
     }
 
-    private data class PagerDiseaseItem(
+    private data class DiseaseItem(
         val disease: String,
-        val combinedCases: Int,
+        val cases: Int,
         val percent: Int,
-        val colorInt: Int
+        val color: Int  // This color matches the pie chart slice
     )
 
     private inner class PieChartPagerAdapter : RecyclerView.Adapter<PieChartPagerAdapter.PieChartVH>() {
@@ -751,43 +756,31 @@ class HomeFragment : Fragment() {
             val diseaseContainer: LinearLayout = itemView.findViewById(R.id.diseaseContainer)
             val municipalityTitle: TextView = itemView.findViewById(R.id.municipalityTitle)
             val cardView: CardView = itemView.findViewById(R.id.cardView)
-            // Removed problematic scrollView reference
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PieChartVH {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_pie_chart_card, parent, false)
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_pie_chart_card, parent, false)
             return PieChartVH(view)
         }
 
         override fun onBindViewHolder(holder: PieChartVH, position: Int) {
             val municipality = municipalities[position]
+            val calendar = Calendar.getInstance()
+            val currentMonth = SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.time)
+            val currentYear = calendar.get(Calendar.YEAR)
+            val currentWeek = getCurrentWeekOfMonth()
+            val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
+            val weekLabel = if (weekNum == currentWeek) "$currentWeekFilter (Current)" else currentWeekFilter
 
-            // Set municipality title for this specific card - RESTORE ORIGINAL COLORS
-            holder.municipalityTitle.text = "$municipality Municipality"
-            holder.municipalityTitle.contentDescription = "Health data for $municipality municipality"
+            holder.municipalityTitle.text = "$municipality Municipality\n$currentMonth $currentYear • $weekLabel"
+            holder.municipalityTitle.contentDescription = "Disease data for $municipality municipality for $weekLabel of $currentMonth $currentYear"
 
-            // Restore original municipality title colors
-            when (position) {
-                0 -> { // Mandaue - Blue theme
-                    holder.municipalityTitle.setTextColor(Color.parseColor("#2C5AA0"))
-                    holder.cardView.setCardBackgroundColor(Color.parseColor("#F0F7FF"))
-                }
-                1 -> { // Liloan - Green theme
-                    holder.municipalityTitle.setTextColor(Color.parseColor("#2E7D32"))
-                    holder.cardView.setCardBackgroundColor(Color.parseColor("#F1F8E9"))
-                }
-                2 -> { // Consolacion - Orange theme
-                    holder.municipalityTitle.setTextColor(Color.parseColor("#EF6C00"))
-                    holder.cardView.setCardBackgroundColor(Color.parseColor("#FFF3E0"))
-                }
-            }
+            // Set the text color to ensure visibility
+            holder.municipalityTitle.setTextColor(getPrimaryTextColor())
 
-            // Set card elevation and radius
-            holder.cardView.cardElevation = dpToPx(2).toFloat()
-            holder.cardView.radius = dpToPx(12).toFloat()
-
-            // Set accessibility content for pie chart
-            holder.pieChart.contentDescription = "Pie chart showing disease distribution for $municipality"
+            // Set card background if needed (optional)
+            // holder.cardView.setCardBackgroundColor(getCardBackgroundColor())
 
             setupPieChart(holder.pieChart, holder.diseaseContainer, position)
             loadPieChartData(municipality, holder.pieChart, holder.diseaseContainer, position)

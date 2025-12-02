@@ -18,6 +18,17 @@
         android:gravity="center"
         android:layout_marginBottom="4dp" />
 
+    <!-- ADD THIS TEXTVIEW FOR WEEK INFO -->
+    <TextView
+        android:id="@+id/textWeekInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Period: January 2024 • Week 1"
+        android:textColor="#666666"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
+
     <TextView
         android:id="@+id/textMunicipality"
         android:layout_width="match_parent"

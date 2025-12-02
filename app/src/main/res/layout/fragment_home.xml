@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true"
-    android:background="#121212">
+    android:background="?android:attr/colorBackground">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="18dp">
 
         <!-- HEADER -->
@@ -22,58 +22,61 @@
 
             <TextView
                 android:id="@+id/appTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Health Radar"
                 android:textSize="26sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"/>
-
+                android:textColor="?android:attr/textColorPrimary" />
         </LinearLayout>
 
         <!-- USER GREETING CARD -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="18dp"
-            android:background="#1E1E1E"
+            app:cardBackgroundColor="?android:attr/colorBackground"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
-            app:cardCornerRadius="14dp">
+            app:strokeColor="@color/gray"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:padding="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
 
                 <TextView
                     android:id="@+id/userName"
-                    android:text="Hello, User"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:text="Hello, User"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- BAR CHART CARD -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="18dp"
-            android:background="#1E1E1E"
+            app:cardBackgroundColor="?android:attr/colorBackground"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
-            app:cardCornerRadius="14dp">
+            app:strokeColor="@color/gray"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:orientation="vertical"
-                android:padding="16dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <!-- Header Section -->
                 <LinearLayout
@@ -88,19 +91,37 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Weekly Cases"
-                        android:textColor="#FFFFFF"
                         android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </LinearLayout>
 
-                <!-- Bar Chart -->
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/barChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:background="#1E1E1E"
-                    android:layout_marginBottom="8dp"/>
+                <TextView
+                    android:id="@+id/monthYearTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:text="November 2024"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorSecondary" />
 
+                <!-- Bar Chart Container -->
+                <LinearLayout
+                    android:id="@+id/chartContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <!-- Bar Chart -->
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/barChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:background="?android:attr/colorBackground" />
+                </LinearLayout>
 
                 <!-- Week Spinner -->
                 <LinearLayout
@@ -114,29 +135,29 @@
                         android:id="@+id/weekSpinner"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:backgroundTint="#FFFFFF"
                         android:minWidth="120dp"
-                        android:popupBackground="@color/black"
+                        android:popupBackground="?android:attr/colorBackground"
                         android:spinnerMode="dropdown"
                         tools:ignore="TouchTargetSizeCheck" />
-
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- PIE CHART CARDS VIEWPAGER -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="550dp"
             android:layout_marginBottom="18dp"
-            android:background="#1E1E1E"
+            app:cardBackgroundColor="?android:attr/colorBackground"
+            app:cardCornerRadius="14dp"
             app:cardElevation="4dp"
-            app:cardCornerRadius="14dp">
+            app:strokeColor="@color/gray"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:padding="8dp">
 
                 <!-- Navigation Header -->
@@ -153,30 +174,30 @@
                         android:id="@+id/leftArrow"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="Previous municipality"
                         android:src="@drawable/ic_arrow_left"
                         android:visibility="invisible"
-                        android:contentDescription="Previous municipality"
-                        app:tint="#5A4CE1" />
+                        app:tint="?attr/colorPrimary" />
 
                     <!-- Title -->
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:gravity="center"
                         android:text="Disease Distribution"
-                        android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:gravity="center" />
+                        android:textColor="?android:attr/textColorPrimary" />
 
                     <!-- Right Arrow -->
                     <ImageView
                         android:id="@+id/rightArrow"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_arrow_right"
                         android:contentDescription="Next municipality"
-                        app:tint="#5A4CE1" />
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="?attr/colorPrimary" />
                 </LinearLayout>
 
                 <!-- Municipality Indicator -->
@@ -184,30 +205,29 @@
                     android:id="@+id/municipalityIndicator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
                     android:layout_gravity="center"
-                    android:layout_marginBottom="12dp"/>
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp" />
 
                 <!-- Swipe Hint -->
                 <TextView
                     android:id="@+id/swipeHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Swipe to view other municipalities"
-                    android:textColor="#888888"
-                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp"
                     android:gravity="center"
-                    android:layout_marginBottom="8dp" />
+                    android:text="Swipe to view other municipalities"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorTertiary" />
 
-                <!-- Pie Charts ViewPager - This will contain separate cards -->
+                <!-- Pie Charts ViewPager -->
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/pieChartPager"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
-
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

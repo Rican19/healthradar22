@@ -1,7 +1,9 @@
 package com.capstone.healthradar
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -16,13 +18,19 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polygon
 import java.io.File
+import java.text.SimpleDateFormat
 import java.text.Normalizer
+import java.util.*
 import java.util.concurrent.Executors
 
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
     private lateinit var spinnerDisease: Spinner
+    private lateinit var weekSpinner: Spinner
+    private lateinit var monthDisplay: TextView
+    private lateinit var monthContainer: LinearLayout
+    private lateinit var monthIcon: ImageView
     private val db = FirebaseFirestore.getInstance()
     private val TAG = "MapFragment"
 
@@ -32,7 +40,17 @@ class MapFragment : Fragment() {
     private val exec = Executors.newSingleThreadExecutor()
 
     private var selectedDisease: String? = null
+    private var currentWeekFilter = "Week 1"
+    private var selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH)
+    private var selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
+    private var selectedDay: Int = 1 // Default to 1st day
     private var activeSheet: BottomSheetDialog? = null
+
+    // Month names
+    private val monthNames = arrayOf(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    )
 
     // Default map setup
     private val defaultCenter = GeoPoint(10.384, 123.957)
@@ -44,7 +62,9 @@ class MapFragment : Fragment() {
         val diseaseDisplay: String,
         val barangayNorm: String,
         val municipalityNorm: String,
-        val caseCount: Int
+        val caseCount: Int,
+        val week: Int,
+        val dateReported: String?
     )
 
     data class GeoFeature(
@@ -76,16 +96,33 @@ class MapFragment : Fragment() {
             return n
         }
 
-        // Fuzzy match but tolerant to spacing
-        fun fuzzyMatch(a: String?, b: String?): Boolean {
-            if (a == null || b == null) return false
-            val x = normalize(a)
-            val y = normalize(b)
-            if (x.isEmpty() || y.isEmpty()) return false
-            if (x == y) return true
-            val xr = x.replace(" ", "")
-            val yr = y.replace(" ", "")
-            return xr.contains(yr) || yr.contains(xr)
+        // Get week of month from a specific date
+        fun getWeekFromDate(year: Int, month: Int, day: Int): Int {
+            val calendar = Calendar.getInstance()
+            calendar.set(year, month, day)
+            val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
+            val week = (dayOfMonth - 1) / 7 + 1
+            return week.coerceAtLeast(1).coerceAtMost(4)
+        }
+
+        // Check if date is from selected month/year
+        fun isDateFromSelectedMonth(dateString: String?, selectedMonth: Int, selectedYear: Int): Boolean {
+            if (dateString.isNullOrEmpty()) return false
+            return try {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                val date = dateFormat.parse(dateString) ?: return false
+
+                val docCalendar = Calendar.getInstance()
+                docCalendar.time = date
+
+                val docMonth = docCalendar.get(Calendar.MONTH)
+                val docYear = docCalendar.get(Calendar.YEAR)
+
+                docMonth == selectedMonth && docYear == selectedYear
+            } catch (e: Exception) {
+                false
+            }
         }
     }
 
@@ -99,14 +136,231 @@ class MapFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_map, container, false)
         mapView = root.findViewById(R.id.map_view)
         spinnerDisease = root.findViewById(R.id.spinner_disease)
+        weekSpinner = root.findViewById(R.id.weekSpinner)
+        monthDisplay = root.findViewById(R.id.monthDisplay)
+        monthContainer = root.findViewById(R.id.monthContainer)
+        monthIcon = root.findViewById(R.id.monthIcon)
 
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(defaultZoom)
         mapView.controller.setCenter(defaultCenter)
 
+        setupMonthClickListener()
+        updateMonthDisplay()
         loadGeoJsonThenData()
         return root
+    }
+
+    private fun setupMonthClickListener() {
+        monthIcon.setOnClickListener {
+            showDatePickerDialog()
+        }
+
+        monthContainer.setOnClickListener {
+            showDatePickerDialog()
+        }
+    }
+
+    private fun showDatePickerDialog() {
+        val calendar = Calendar.getInstance()
+        calendar.set(selectedYear, selectedMonth, selectedDay)
+
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, day ->
+                selectedYear = year
+                selectedMonth = month
+                selectedDay = day
+                updateMonthDisplay()
+
+                // Calculate week from selected date
+                val calculatedWeek = getWeekFromDate(year, month, day)
+                currentWeekFilter = "Week $calculatedWeek"
+
+                refreshWeekSpinner()
+                refreshDiseaseSpinner()
+                renderDiseasePolygons()
+            },
+            selectedYear,
+            selectedMonth,
+            selectedDay
+        )
+
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+        datePickerDialog.show()
+    }
+
+    private fun updateMonthDisplay() {
+        val monthName = monthNames[selectedMonth]
+        monthDisplay.text = "$monthName $selectedYear"
+    }
+
+    private fun setupWeekSpinner() {
+        val availableWeeks = getAvailableWeeksForSelectedDate()
+        val weekOptions = mutableListOf<String>()
+
+        // Add available weeks
+        for (week in 1..4) {
+            if (week in availableWeeks) {
+                weekOptions.add("Week $week")
+            }
+        }
+
+        // If no weeks available, show only Week 1 (but disabled)
+        if (weekOptions.isEmpty()) {
+            weekOptions.add("Week 1")
+        }
+
+        // Try to select the week that matches the current date
+        val calculatedWeek = getWeekFromDate(selectedYear, selectedMonth, selectedDay)
+        val targetWeek = "Week $calculatedWeek"
+        val targetIndex = weekOptions.indexOf(targetWeek)
+
+        // If target week is available, select it, otherwise select first available
+        if (targetIndex >= 0) {
+            currentWeekFilter = targetWeek
+        } else if (weekOptions.isNotEmpty()) {
+            currentWeekFilter = weekOptions[0]
+        }
+
+        val adapter = object : ArrayAdapter<String>(
+            requireContext(),
+            R.layout.custom_spinner_item,
+            weekOptions
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent)
+                val textView = view.findViewById<TextView>(android.R.id.text1)
+                textView.setTextColor(Color.BLACK)
+                textView.textSize = 14f
+                textView.setTypeface(null, Typeface.BOLD)
+
+                // Show current week indicator
+                val weekText = getItem(position) ?: ""
+                val weekNum = weekText.replace("Week ", "").toIntOrNull()
+                val isCurrentDateWeek = weekNum == getWeekFromDate(selectedYear, selectedMonth, selectedDay)
+
+                textView.text = if (isCurrentDateWeek) {
+                    "$weekText (Current)"
+                } else {
+                    weekText
+                }
+
+                return view
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent)
+                val textView = view.findViewById<TextView>(android.R.id.text1)
+                textView.setTextColor(Color.BLACK)
+                textView.textSize = 14f
+                textView.setTypeface(null, Typeface.NORMAL)
+
+                // Show current week indicator in dropdown
+                val weekText = getItem(position) ?: ""
+                val weekNum = weekText.replace("Week ", "").toIntOrNull()
+                val isCurrentDateWeek = weekNum == getWeekFromDate(selectedYear, selectedMonth, selectedDay)
+
+                textView.text = if (isCurrentDateWeek) {
+                    "$weekText (Current)"
+                } else {
+                    weekText
+                }
+
+                return view
+            }
+        }
+
+        adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        weekSpinner.adapter = adapter
+
+        weekSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position < weekOptions.size) {
+                    currentWeekFilter = weekOptions[position].replace(" (Current)", "")
+                    refreshDiseaseSpinner()
+                    renderDiseasePolygons()
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        weekSpinner.post {
+            if (weekOptions.isNotEmpty()) {
+                val targetWeek = "Week ${getWeekFromDate(selectedYear, selectedMonth, selectedDay)}"
+                val targetIndex = weekOptions.indexOfFirst { it.startsWith(targetWeek) }
+                if (targetIndex >= 0) {
+                    weekSpinner.setSelection(targetIndex)
+                } else {
+                    weekSpinner.setSelection(0)
+                }
+            }
+        }
+    }
+
+    private fun refreshWeekSpinner() {
+        setupWeekSpinner()
+    }
+
+    private fun refreshDiseaseSpinner() {
+        // Get diseases that have records for selected month/year and week
+        val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
+        val diseasesWithRecords = getDiseasesWithRecords(selectedMonth, selectedYear, weekNum)
+
+        val diseaseOptions = mutableListOf("All Diseases")
+        diseaseOptions.addAll(diseasesWithRecords)
+
+        val adapter = ArrayAdapter(
+            requireContext(),
+            R.layout.custom_spinner_item,
+            diseaseOptions
+        )
+        adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        spinnerDisease.adapter = adapter
+
+        // Try to maintain previous selection if it still exists
+        val previousSelection = selectedDisease
+        if (previousSelection != null && diseaseOptions.contains(previousSelection)) {
+            val index = diseaseOptions.indexOf(previousSelection)
+            spinnerDisease.setSelection(index)
+        } else {
+            spinnerDisease.setSelection(0)
+            selectedDisease = "All Diseases"
+        }
+
+        spinnerDisease.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selected = parent.getItemAtPosition(position) as String
+                selectedDisease = selected
+                renderDiseasePolygons()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+    private fun getDiseasesWithRecords(month: Int, year: Int, week: Int): List<String> {
+        val diseases = mutableSetOf<String>()
+
+        for (record in records) {
+            if (isDateFromSelectedMonth(record.dateReported, month, year) && record.week == week) {
+                diseases.add(record.diseaseDisplay)
+            }
+        }
+
+        return diseases.sorted()
+    }
+
+    private fun getAvailableWeeksForSelectedDate(): Set<Int> {
+        val availableWeeks = mutableSetOf<Int>()
+        for (record in records) {
+            if (isDateFromSelectedMonth(record.dateReported, selectedMonth, selectedYear)) {
+                availableWeeks.add(record.week)
+            }
+        }
+        return availableWeeks
     }
 
     private fun loadGeoJsonThenData() {
@@ -123,7 +377,6 @@ class MapFragment : Fragment() {
                     val barangayRaw = props.optString("adm4_en", "Unknown").trim()
                     var municipalityRaw = props.optString("adm3_en", "").trim()
 
-                    // fallback from PSGC codes when adm3_en missing
                     if (municipalityRaw.isBlank() || municipalityRaw.equals("Unknown", true)) {
                         val adm3Psgc = props.optLong("adm3_psgc", 0L)
                         municipalityRaw = when (adm3Psgc) {
@@ -211,57 +464,39 @@ class MapFragment : Fragment() {
         records.clear()
         diseaseDisplayList.clear()
 
-        db.collection("healthradarDB").document("centralizedData").collection("allCases").get()
+        db.collection("healthradarDB").document("centralizedData").collection("allCases")
+            .get()
             .addOnSuccessListener { docs ->
                 for (doc in docs) {
-                    val disease = doc.getString("DiseaseName") ?: continue
-                    val barangay = doc.getString("Barangay") ?: ""
-                    val municipality = doc.getString("Municipality") ?: ""
-                    val count = (doc.get("CaseCount") as? Number)?.toInt() ?: 0
+                    try {
+                        val disease = doc.getString("DiseaseName") ?: continue
+                        val barangay = doc.getString("Barangay") ?: ""
+                        val municipality = doc.getString("Municipality") ?: ""
+                        val count = (doc.get("CaseCount") as? Number)?.toInt() ?: 0
+                        val week = (doc.get("Week") as? Number)?.toInt() ?: 1
+                        val dateReported = doc.getString("DateReported") ?: doc.getString("uploadedAt") ?: ""
 
-                    records.add(
-                        Record(
-                            normalize(disease),
-                            disease.trim(),
-                            normalize(barangay),
-                            normalize(municipality),
-                            count
+                        records.add(
+                            Record(
+                                normalize(disease),
+                                disease.trim(),
+                                normalize(barangay),
+                                normalize(municipality),
+                                count,
+                                week,
+                                dateReported
+                            )
                         )
-                    )
 
-                    if (!diseaseDisplayList.contains(disease.trim()))
-                        diseaseDisplayList.add(disease.trim())
-                }
-
-                diseaseDisplayList.sortBy { it.lowercase() }
-                diseaseDisplayList.add(0, "All Diseases")
-
-                val adapter = ArrayAdapter(
-                    requireContext(),
-                    R.layout.spinner_item,  // custom view for selected item
-                    diseaseDisplayList
-                )
-                adapter.setDropDownViewResource(R.layout.spinner_dropdown_item) // custom view for dropdown list
-                spinnerDisease.adapter = adapter
-
-                spinnerDisease.setPopupBackgroundResource(android.R.color.transparent)
-                spinnerDisease.setSelection(0)
-
-                spinnerDisease.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                        (view as? TextView)?.setTextColor(Color.BLACK)
-                        (view as? TextView)?.setTypeface(null, android.graphics.Typeface.BOLD)
-
-                        val selected = parent.getItemAtPosition(position) as String
-                        selectedDisease = selected
-                        mapView.controller.setZoom(defaultZoom)
-                        mapView.controller.setCenter(defaultCenter)
-                        renderDiseasePolygons()
+                        // Don't add to global disease list here anymore
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing document: ${doc.id}", e)
                     }
-
-                    override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
 
+                setupWeekSpinner()
+                refreshDiseaseSpinner()
+                renderDiseasePolygons()
             }
             .addOnFailureListener { ex ->
                 Log.e(TAG, "Firestore load failed", ex)
@@ -272,10 +507,15 @@ class MapFragment : Fragment() {
         mapView.overlays.removeAll(mapView.overlays.filterIsInstance<Polygon>())
 
         val selected = selectedDisease ?: "All Diseases"
-        // barangayKey -> (diseaseDisplay -> count)
+        val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
+
         val caseMap = mutableMapOf<String, MutableMap<String, Int>>()
 
         for (r in records) {
+            // Filter by selected month/year AND week
+            if (!isDateFromSelectedMonth(r.dateReported, selectedMonth, selectedYear)) continue
+            if (r.week != weekNum) continue
+
             if (selected == "All Diseases" || r.diseaseDisplay.equals(selected, true)) {
                 val key = "${r.barangayNorm}_${r.municipalityNorm}"
                 val m = caseMap.getOrPut(key) { mutableMapOf() }
@@ -288,7 +528,6 @@ class MapFragment : Fragment() {
             val diseases = caseMap[brgyKey]
             val totalCases = diseases?.values?.sum() ?: 0
 
-            // color polygons even when totalCases==0 (light fill), but clickable only if >0
             val fillColor = when {
                 totalCases == 0 -> Color.argb(40, 255, 255, 255)
                 totalCases in 1..2 -> Color.argb(120, 255, 245, 157)
@@ -305,10 +544,8 @@ class MapFragment : Fragment() {
                     strokeColor = Color.BLACK
                     strokeWidth = 1.5f
 
-                    // only attach click if there are diseases to show (i.e., in caseMap)
                     if (!diseases.isNullOrEmpty()) {
                         setOnClickListener { _, _, _ ->
-                            // close previous sheet
                             activeSheet?.dismiss()
                             activeSheet = null
 
@@ -316,11 +553,9 @@ class MapFragment : Fragment() {
                                 inferMunicipality(f.barangay) else f.municipality
 
                             val center = getPolygonCenter(ring)
-                            // slight zoom and center
                             mapView.controller.animateTo(center)
                             mapView.controller.setZoom(zoomOnBarangaySelect)
 
-                            // show bottomsheet with all disease entries for this barangay (respecting current spinner filter)
                             showBottomSheet(f.barangay, muniName, diseases)
                             true
                         }
@@ -341,14 +576,20 @@ class MapFragment : Fragment() {
         val muni = view.findViewById<TextView>(R.id.textMunicipality)
         val total = view.findViewById<TextView>(R.id.textTotal)
         val listLayout = view.findViewById<LinearLayout>(R.id.listDiseases)
+        val weekInfo = view.findViewById<TextView>(R.id.textWeekInfo)
 
         title.text = barangay
         muni.text = "Municipality: $municipality"
 
+        // Show selected date in info card
+        val monthName = monthNames[selectedMonth]
+        val dateStr = String.format("%02d/%02d/%04d", selectedMonth + 1, selectedDay, selectedYear)
+        weekInfo.text = "Period: $monthName $selectedYear • $currentWeekFilter • $dateStr"
+        weekInfo.setTextColor(Color.GRAY)
+
         val totalCases = diseases.values.sum()
         total.text = "Total Cases: $totalCases"
 
-        // ✅ Change background colour depending on total cases
         val color = when {
             totalCases in 1..2 -> Color.parseColor("#FFF59D")
             totalCases in 3..5 -> Color.parseColor("#FFB74D")
@@ -370,8 +611,8 @@ class MapFragment : Fragment() {
 
         dialog.setContentView(view)
         dialog.show()
+        activeSheet = dialog
     }
-
 
     private fun getPolygonCenter(points: List<GeoPoint>): GeoPoint {
         var lat = 0.0
@@ -381,6 +622,11 @@ class MapFragment : Fragment() {
             lon += p.longitude
         }
         return GeoPoint(lat / points.size, lon / points.size)
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        val density = resources.displayMetrics.density
+        return (dp * density).toInt()
     }
 
     override fun onDestroyView() {
