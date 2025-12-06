@@ -4,115 +4,150 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#E0E0E0">
+    android:background="?android:attr/colorBackground"
+    android:padding="4dp">
 
-    <!-- Header -->
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:text="CASE MONITORING"
-        android:textColor="#FF0000"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:background="#FFFFFF" />
-
-    <!-- Search Bar -->
-
-    <!-- Section Header -->
+    <!-- Header (24sp size, no background color) -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="UPLOADED DISEASE CASES"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:padding="10dp"
-        android:background="#FF0000" />
+        android:textColor="?android:attr/textColorPrimary"
+        android:paddingVertical="16dp"
+        android:gravity="center"
+        android:textSize="24sp"
+        android:letterSpacing="0.01"
+        android:layout_marginBottom="8dp" />
 
-    <!-- Spinner Filter -->
-    <Spinner
-        android:id="@+id/spinnerMunicipality"
+    <!-- Filter Section -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:textColor="@color/black"
-        android:spinnerMode="dropdown"
-        android:background="@android:drawable/btn_dropdown" />
+        android:orientation="horizontal"
+        android:background="?android:attr/colorBackground"
+        android:paddingHorizontal="4dp"
+        android:paddingVertical="4dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical">
 
-    <!-- Scrollable Table Header + List -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fillViewport="true"
-        android:scrollbars="horizontal">
-
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter by Municipality:"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="14sp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerMunicipality"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:spinnerMode="dropdown"
+            android:background="@drawable/spinner_background"
+            android:popupBackground="?android:attr/colorBackground"
+            android:popupElevation="4dp" />
+    </LinearLayout>
+
+    <!-- Table Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="?android:attr/colorBackground"
+        android:layout_marginTop="4dp">
+
+        <!-- Horizontal Scroll View -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:fillViewport="true"
+            android:scrollbars="horizontal">
 
-            <!-- Table Column Header -->
             <LinearLayout
-                android:id="@+id/headerRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="#F5F5F5"
-                android:paddingVertical="8dp">
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="118dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="DISEASE NAME"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                <!-- Table Header -->
+                <LinearLayout
+                    android:id="@+id/headerRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:background="?android:attr/colorControlHighlight"
+                    android:gravity="center_vertical">
 
-                <TextView
-                    android:layout_width="102dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="CASES"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/headerDisease"
+                        android:layout_width="120dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical|start"
+                        android:paddingHorizontal="8dp"
+                        android:text="DISEASE NAME"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
 
-                <TextView
-                    android:layout_width="124dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="MUNICIPALITY"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/headerCases"
+                        android:layout_width="60dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:paddingHorizontal="4dp"
+                        android:text="CASES"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1" />
 
-                <TextView
-                    android:layout_width="156dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:padding="8dp"
-                    android:text="DATE REPORTED"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/headerMunicipality"
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical|start"
+                        android:paddingHorizontal="8dp"
+                        android:text="MUNICIPALITY"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/headerDate"
+                        android:layout_width="90dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical|start"
+                        android:paddingHorizontal="8dp"
+                        android:text="DATE"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+
+                <!-- ListView -->
+                <ListView
+                    android:id="@+id/listViewDiseases"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:background="?android:attr/colorBackground"
+                    android:divider="?android:attr/listDivider"
+                    android:dividerHeight="1dp"
+                    android:fastScrollEnabled="true"
+                    android:scrollbars="vertical" />
             </LinearLayout>
-
-            <!-- ListView -->
-            <ListView
-                android:id="@+id/listViewDiseases"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="#FFFFFF"
-                android:divider="@android:color/darker_gray"
-                android:dividerHeight="1dp" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
+        </HorizontalScrollView>
+    </LinearLayout>
 </LinearLayout>

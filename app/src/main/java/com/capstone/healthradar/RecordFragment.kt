@@ -30,10 +30,10 @@ class RecordFragment : Fragment() {
         spinnerMunicipality = rootView.findViewById(R.id.spinnerMunicipality)
         firestore = FirebaseFirestore.getInstance()
 
+        // Use your existing CaseListAdapter
         adapter = CaseListAdapter(requireContext(), caseList)
         listViewDiseases.adapter = adapter
 
-        // Setup spinner
         val spinnerAdapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -42,7 +42,6 @@ class RecordFragment : Fragment() {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerMunicipality.adapter = spinnerAdapter
 
-        // Load all data initially
         loadCases("All")
 
         spinnerMunicipality.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -75,7 +74,6 @@ class RecordFragment : Fragment() {
                         ?: doc.getString("uploadedAt")
                         ?: "N/A"
 
-                    // Local filter (case-insensitive, hyphen-insensitive)
                     if (municipality == "All" ||
                         muni.replace("-", "", true).equals(municipality.replace("-", "", true), true)
                     ) {
@@ -83,10 +81,14 @@ class RecordFragment : Fragment() {
                     }
                 }
 
-                // Sort alphabetically by disease name (case-insensitive)
+                // Sort alphabetically by disease name
                 caseList.sortBy { it.diseaseName.lowercase() }
-
                 adapter.notifyDataSetChanged()
+
+                // Show empty message if no data
+                if (caseList.isEmpty()) {
+                    showEmptyMessage()
+                }
             }
             .addOnFailureListener { e ->
                 if (!isAdded) return@addOnFailureListener
@@ -94,4 +96,15 @@ class RecordFragment : Fragment() {
             }
     }
 
+    private fun showEmptyMessage() {
+        val emptyView = TextView(requireContext()).apply {
+            text = "No disease cases found for selected filter"
+            gravity = android.view.Gravity.CENTER
+            setTextColor(resources.getColor(android.R.color.darker_gray, requireContext().theme))
+            setPadding(0, 50, 0, 50)
+        }
+
+        (listViewDiseases.parent as? ViewGroup)?.addView(emptyView)
+        listViewDiseases.emptyView = emptyView
+    }
 }

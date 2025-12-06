@@ -20,7 +20,6 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var LoginButton: Button
     private lateinit var progressBar: ProgressBar
     private lateinit var Register: TextView  // This must match XML ID
-    private lateinit var tvForgotPassword: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +46,6 @@ class LoginActivity : AppCompatActivity() {
         LoginButton = findViewById(R.id.LoginButton)
         progressBar = findViewById(R.id.progressBar)
         Register = findViewById(R.id.Register)  // This finds the TextView with ID "Register"
-        tvForgotPassword = findViewById(R.id.tvForgotPassword)
 
         // Set button to always be enabled
         LoginButton.isEnabled = true
@@ -79,10 +77,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
-        tvForgotPassword.setOnClickListener {
-            // TODO: Implement forgot password functionality
-            Toast.makeText(this, "Forgot password feature coming soon!", Toast.LENGTH_SHORT).show()
-        }
 
         LoginButton.setOnClickListener {
             // Always validate when button is clicked and show warnings
@@ -180,6 +174,5 @@ class LoginActivity : AppCompatActivity() {
         emailEditText.isEnabled = !isLoading
         passwordEditText.isEnabled = !isLoading
         Register.isEnabled = !isLoading
-        tvForgotPassword.isEnabled = !isLoading
     }
 }

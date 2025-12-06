@@ -9,7 +9,8 @@
     android:layout_margin="8dp"
     android:contentDescription="@string/card_content_description"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp">
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -28,7 +29,7 @@
             android:gravity="center"
             android:layout_marginBottom="16dp"
             android:importantForAccessibility="yes"
-            android:textColor="@color/text_primary" />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <!-- Pie Chart with fixed height -->
         <com.github.mikephil.charting.charts.PieChart
@@ -38,16 +39,16 @@
             android:layout_marginBottom="8dp"
             android:contentDescription="@string/pie_chart_content_description" />
 
-        <!-- Disease Breakdown Header -->
+        <!-- Disease List Header - CHANGED: "Disease Breakdown:" to "Disease List:" -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Disease Breakdown:"
+            android:text="Disease List:"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
             android:importantForAccessibility="yes"
-            android:textColor="@color/text_primary" />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <!-- Scrollable container for disease list -->
         <ScrollView

@@ -9,7 +9,7 @@
     android:contentDescription="@string/card_content_description"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp"
-    app:cardBackgroundColor="#2D2D2D">
+    app:cardBackgroundColor="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Mandaue"
-            android:textColor="#5A4CE1"
+            android:textColor="?attr/colorPrimary"
             android:textSize="18sp"
             android:textStyle="bold"
             android:gravity="center"
@@ -38,19 +38,17 @@
             android:layout_marginBottom="8dp"
             android:contentDescription="@string/pie_chart_content_description" />
 
-        <!-- Disease Breakdown Header -->
+        <!-- Disease List Header - CHANGED FROM "Disease Breakdown:" TO "Disease List:" -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Disease Breakdown:"
-            android:textColor="#FFFFFF"
+            android:text="Disease List:"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
             android:importantForAccessibility="yes" />
 
     </LinearLayout>
-
-
 
 </androidx.cardview.widget.CardView>

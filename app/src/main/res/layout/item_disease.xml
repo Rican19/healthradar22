@@ -6,6 +6,7 @@
     android:background="?android:attr/selectableItemBackground"
     android:paddingVertical="4dp">
 
+    <!-- Disease Name - MUST be 120dp EXACT -->
     <TextView
         android:id="@+id/tvDiseaseName"
         android:layout_width="120dp"
@@ -18,6 +19,7 @@
         android:maxLines="2"
         android:ellipsize="end" />
 
+    <!-- Cases - MUST be 60dp EXACT -->
     <TextView
         android:id="@+id/tvCases"
         android:layout_width="60dp"
@@ -29,6 +31,7 @@
         android:textSize="12sp"
         android:maxLines="1" />
 
+    <!-- Municipality - MUST be 100dp EXACT -->
     <TextView
         android:id="@+id/tvMunicipality"
         android:layout_width="100dp"
@@ -41,8 +44,9 @@
         android:maxLines="2"
         android:ellipsize="end" />
 
+    <!-- Date - MUST be 90dp EXACT -->
     <TextView
-        android:id="@+id/tvDate"
+        android:id="@+id/tvDateReported"
         android:layout_width="90dp"
         android:layout_height="match_parent"
         android:gravity="center_vertical|start"

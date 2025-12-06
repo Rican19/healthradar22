@@ -2,6 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainNestedScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -31,15 +32,15 @@
                 android:textColor="?android:attr/textColorPrimary" />
         </LinearLayout>
 
-        <!-- USER GREETING CARD -->
+        <!-- USER GREETING CARD - ENLARGED -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="18dp"
-            app:cardBackgroundColor="?android:attr/colorBackground"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="4dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
             app:strokeColor="@color/gray"
             app:strokeWidth="1dp">
 
@@ -48,14 +49,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="16dp">
+                android:padding="24dp">
 
                 <TextView
                     android:id="@+id/userName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Hello, User"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorPrimary" />
             </LinearLayout>
@@ -66,9 +67,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="18dp"
-            app:cardBackgroundColor="?android:attr/colorBackground"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="4dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
             app:strokeColor="@color/gray"
             app:strokeWidth="1dp">
 
@@ -102,7 +103,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="8dp"
-                    android:text="November 2024"
+                    android:layout_marginBottom="16dp"
+                    android:text="November 2024 • Week 1"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorSecondary" />
@@ -120,7 +122,84 @@
                         android:id="@+id/barChart"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
+                        android:nestedScrollingEnabled="true"
                         android:background="?android:attr/colorBackground" />
+                </LinearLayout>
+
+                <!-- DISEASE LIST CONTAINER - PAGINATED -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="vertical">
+
+                    <!-- Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <!-- Left Arrow -->
+                        <ImageView
+                            android:id="@+id/diseaseLeftArrow"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:contentDescription="Previous page"
+                            android:src="@drawable/ic_arrow_left"
+                            android:visibility="invisible"
+                            app:tint="?attr/colorPrimary"
+                            android:padding="6dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <!-- Title -->
+                        <TextView
+                            android:id="@+id/diseasePageTitle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="Disease List - Page 1"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="?android:attr/textColorPrimary" />
+
+                        <!-- Right Arrow -->
+                        <ImageView
+                            android:id="@+id/diseaseRightArrow"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:contentDescription="Next page"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="?attr/colorPrimary"
+                            android:padding="6dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                    <!-- Disease List ViewPager2 -->
+                    <androidx.viewpager2.widget.ViewPager2
+                        android:id="@+id/diseaseListViewPager"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:minHeight="250dp" />
+
+                    <!-- Page Indicator -->
+                    <LinearLayout
+                        android:id="@+id/diseasePageIndicator"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp"
+                        android:paddingVertical="4dp" />
+
                 </LinearLayout>
 
                 <!-- Week Spinner -->
@@ -143,22 +222,22 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- PIE CHART CARDS VIEWPAGER -->
+        <!-- EXPANDED PIE CHART CARD -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="550dp"
-            android:layout_marginBottom="18dp"
-            app:cardBackgroundColor="?android:attr/colorBackground"
-            app:cardCornerRadius="14dp"
-            app:cardElevation="4dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="?attr/colorSurface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
             app:strokeColor="@color/gray"
             app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="16dp">
 
                 <!-- Navigation Header -->
                 <LinearLayout
@@ -166,67 +245,95 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp"
-                    android:paddingHorizontal="8dp">
+                    android:layout_marginBottom="12dp">
 
                     <!-- Left Arrow -->
                     <ImageView
                         android:id="@+id/leftArrow"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:contentDescription="Previous municipality"
                         android:src="@drawable/ic_arrow_left"
                         android:visibility="invisible"
-                        app:tint="?attr/colorPrimary" />
+                        app:tint="?attr/colorPrimary"
+                        android:padding="6dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
 
-                    <!-- Title -->
+                    <!-- Title - CHANGED: Disease Breakdown to Disease List -->
+                    <!-- Title - CHANGED: Disease Breakdown to Disease List -->
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:text="Disease Distribution"
-                        android:textSize="16sp"
+                        android:text="Disease List"
+                        android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="?android:attr/textColorPrimary" />
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:layout_marginHorizontal="8dp" />
 
                     <!-- Right Arrow -->
                     <ImageView
                         android:id="@+id/rightArrow"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:contentDescription="Next municipality"
                         android:src="@drawable/ic_arrow_right"
-                        app:tint="?attr/colorPrimary" />
+                        app:tint="?attr/colorPrimary"
+                        android:padding="6dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
                 </LinearLayout>
 
-                <!-- Municipality Indicator -->
+                <!-- Municipality Indicator and Current Selection -->
                 <LinearLayout
-                    android:id="@+id/municipalityIndicator"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
+                    android:orientation="vertical"
                     android:gravity="center"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Municipality Indicator -->
+                    <LinearLayout
+                        android:id="@+id/municipalityIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp" />
+                </LinearLayout>
 
                 <!-- Swipe Hint -->
                 <TextView
                     android:id="@+id/swipeHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="16dp"
                     android:gravity="center"
-                    android:text="Swipe to view other municipalities"
+                    android:text="Swipe pie chart or use arrows to navigate municipalities"
                     android:textSize="12sp"
-                    android:textColor="?android:attr/textColorTertiary" />
+                    android:textColor="?android:attr/textColorSecondary" />
 
                 <!-- Pie Charts ViewPager -->
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/pieChartPager"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    android:layout_height="500dp"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Legend/Info -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="Tap on pie slices to highlight diseases in the list below"
+                    android:textSize="11sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textStyle="italic" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
