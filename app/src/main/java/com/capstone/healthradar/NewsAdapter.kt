@@ -48,7 +48,6 @@ class NewsAdapter(
     }
 
     inner class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // Make all views nullable and use safe initialization
         private val imageView: ImageView? = itemView.findViewById(R.id.imageViewNews)
         private val titleTextView: TextView? = itemView.findViewById(R.id.textViewTitle)
         private val descriptionTextView: TextView? = itemView.findViewById(R.id.textViewDescription)
@@ -58,39 +57,29 @@ class NewsAdapter(
         val cardView: MaterialCardView? = itemView.findViewById(R.id.cardView)
 
         fun bind(article: NewsArticle) {
-            // Safely set text on views that exist
             titleTextView?.text = article.title ?: "No Title"
             descriptionTextView?.text = article.description ?: "No description available"
             sourceTextView?.text = article.source?.name ?: "Unknown Source"
 
-            // Format published date
             article.publishedAt?.let {
                 timeTextView?.text = formatDate(it)
             } ?: run {
                 timeTextView?.text = "Unknown time"
             }
-
-            // Apply text colors to views that exist
             applyTextColors()
-
-            // Load image if imageView exists
             loadImage(article.urlToImage)
         }
 
         private fun applyTextColors() {
-            // Safely apply colors only if views exist
             titleTextView?.setTextColor(ContextCompat.getColor(context, R.color.dark_text))
             descriptionTextView?.setTextColor(ContextCompat.getColor(context, R.color.medium_gray))
             sourceTextView?.setTextColor(ContextCompat.getColor(context, R.color.primary_color))
             timeTextView?.setTextColor(ContextCompat.getColor(context, R.color.light_gray))
-
-            // Style the read more button if it exists
             buttonReadMore?.setBackgroundColor(ContextCompat.getColor(context, R.color.primary_color))
             buttonReadMore?.setTextColor(ContextCompat.getColor(context, R.color.white))
         }
 
         private fun loadImage(imageUrl: String?) {
-            // Only load image if imageView exists
             imageView?.let { imgView ->
                 if (!imageUrl.isNullOrEmpty()) {
                     Glide.with(context)
@@ -101,7 +90,6 @@ class NewsAdapter(
                         .centerCrop()
                         .into(imgView)
                 } else {
-                    // Set placeholder when no image URL
                     imgView.setBackgroundColor(ContextCompat.getColor(context, android.R.color.darker_gray))
                     imgView.setImageDrawable(null)
                 }

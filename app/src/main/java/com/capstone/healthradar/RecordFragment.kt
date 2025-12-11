@@ -30,7 +30,6 @@ class RecordFragment : Fragment() {
         spinnerMunicipality = rootView.findViewById(R.id.spinnerMunicipality)
         firestore = FirebaseFirestore.getInstance()
 
-        // Use your existing CaseListAdapter
         adapter = CaseListAdapter(requireContext(), caseList)
         listViewDiseases.adapter = adapter
 
@@ -56,8 +55,14 @@ class RecordFragment : Fragment() {
         return rootView
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadCases("All")
+    }
+
     private fun loadCases(municipality: String) {
         caseList.clear()
+        adapter.notifyDataSetChanged()
 
         val query: Query = firestore.collection("healthradarDB")
             .document("centralizedData")
@@ -66,6 +71,7 @@ class RecordFragment : Fragment() {
         query.get()
             .addOnSuccessListener { documents ->
                 if (!isAdded) return@addOnSuccessListener
+
                 for (doc in documents) {
                     val diseaseName = doc.getString("DiseaseName") ?: "Unknown Disease"
                     val caseCount = doc.get("CaseCount")?.toString() ?: "0"
@@ -81,13 +87,13 @@ class RecordFragment : Fragment() {
                     }
                 }
 
-                // Sort alphabetically by disease name
                 caseList.sortBy { it.diseaseName.lowercase() }
                 adapter.notifyDataSetChanged()
 
-                // Show empty message if no data
                 if (caseList.isEmpty()) {
                     showEmptyMessage()
+                } else {
+                    hideEmptyMessage()
                 }
             }
             .addOnFailureListener { e ->
@@ -97,14 +103,41 @@ class RecordFragment : Fragment() {
     }
 
     private fun showEmptyMessage() {
-        val emptyView = TextView(requireContext()).apply {
-            text = "No disease cases found for selected filter"
-            gravity = android.view.Gravity.CENTER
-            setTextColor(resources.getColor(android.R.color.darker_gray, requireContext().theme))
-            setPadding(0, 50, 0, 50)
+        // Check if empty view already exists
+        if (listViewDiseases.emptyView == null) {
+            val emptyView = TextView(requireContext()).apply {
+                text = "No disease cases found for selected filter"
+                gravity = android.view.Gravity.CENTER
+                setTextColor(resources.getColor(android.R.color.darker_gray, requireContext().theme))
+                setPadding(0, 50, 0, 50)
+            }
+
+            (listViewDiseases.parent as? ViewGroup)?.addView(emptyView)
+            listViewDiseases.emptyView = emptyView
+        }
+    }
+
+    private fun hideEmptyMessage() {
+        listViewDiseases.emptyView = null
+    }
+
+    // ADD THIS METHOD
+    fun refreshData() {
+        val selectedPosition = spinnerMunicipality.selectedItemPosition
+        val selectedMunicipality = if (selectedPosition >= 0 && selectedPosition < municipalities.size) {
+            municipalities[selectedPosition]
+        } else {
+            "All"
         }
 
-        (listViewDiseases.parent as? ViewGroup)?.addView(emptyView)
-        listViewDiseases.emptyView = emptyView
+        loadCases(selectedMunicipality)
+        Toast.makeText(requireContext(), "Records refreshed", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up
+        caseList.clear()
+        adapter.notifyDataSetChanged()
     }
 }

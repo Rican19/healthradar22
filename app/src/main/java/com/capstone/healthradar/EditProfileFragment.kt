@@ -18,7 +18,7 @@ import com.google.android.material.button.MaterialButton
 
 class EditProfileFragment : Fragment() {
 
-    // Input fields
+
     private lateinit var editFirstName: EditText
     private lateinit var editLastName: EditText
     private lateinit var editPhone: EditText
@@ -28,7 +28,6 @@ class EditProfileFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvCancel: TextView
 
-    // TextInputLayouts for error handling
     private lateinit var tilFirstName: TextInputLayout
     private lateinit var tilLastName: TextInputLayout
     private lateinit var tilPhone: TextInputLayout
@@ -38,7 +37,7 @@ class EditProfileFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
-    // Barangay data for each municipality (same as SignUpActivity)
+    // municipalities
     private val liloanBarangays = arrayOf(
         "Select Barangay",
         "Cabadiangan", "Calero", "Catarman", "Cotcot", "Jubay", "Lataban",
@@ -82,7 +81,7 @@ class EditProfileFragment : Fragment() {
         setupClickListeners()
         setupTextChangeListeners()
 
-        // Load user data with a small delay to prevent auto-dropdown opening
+        // Load user data
         Handler(Looper.getMainLooper()).postDelayed({
             loadUserData()
         }, 100)
@@ -92,7 +91,6 @@ class EditProfileFragment : Fragment() {
 
     private fun initializeViews(view: View) {
         try {
-            // EditText fields
             editFirstName = view.findViewById(R.id.editFirstName)
             editLastName = view.findViewById(R.id.editLastName)
             editPhone = view.findViewById(R.id.editPhone)
@@ -102,7 +100,6 @@ class EditProfileFragment : Fragment() {
             progressBar = view.findViewById(R.id.progressBar)
             tvCancel = view.findViewById(R.id.tvCancel)
 
-            // TextInputLayout fields
             tilFirstName = view.findViewById(R.id.tilFirstName)
             tilLastName = view.findViewById(R.id.tilLastName)
             tilPhone = view.findViewById(R.id.tilPhone)
@@ -134,8 +131,6 @@ class EditProfileFragment : Fragment() {
         editBarangay.dropDownHeight = ViewGroup.LayoutParams.WRAP_CONTENT
         editBarangay.dropDownWidth = ViewGroup.LayoutParams.MATCH_PARENT
 
-        // REMOVED the problematic focus change listener that auto-opens dropdown
-        // Municipality selection listener
         editMunicipality.setOnItemClickListener { parent, view, position, id ->
             val selectedMunicipality = parent.getItemAtPosition(position).toString()
             Log.d(TAG, "Municipality selected: $selectedMunicipality")
@@ -143,14 +138,13 @@ class EditProfileFragment : Fragment() {
             clearError(tilMunicipal)
         }
 
-        // Only show dropdown on click, not on focus
         editMunicipality.setOnClickListener {
             if (editMunicipality.text.isNotEmpty()) {
                 editMunicipality.showDropDown()
             }
         }
 
-        // Barangay dropdown click listener
+        // Barangay dropdown
         editBarangay.setOnClickListener {
             if (editBarangay.isEnabled && editBarangay.text.isNotEmpty()) {
                 editBarangay.showDropDown()
@@ -159,13 +153,6 @@ class EditProfileFragment : Fragment() {
                 setError(tilBarangay, "Select municipality first")
             }
         }
-
-        // Remove focus change listener for barangay too
-        // editBarangay.setOnFocusChangeListener { v, hasFocus ->
-        //     if (hasFocus && editBarangay.isEnabled && editBarangay.text.isNotEmpty()) {
-        //         editBarangay.showDropDown()
-        //     }
-        // }
     }
 
     private fun updateBarangayDropdown(municipality: String) {
@@ -185,13 +172,6 @@ class EditProfileFragment : Fragment() {
         if (!isValidMunicipality) {
             editBarangay.setText("", false)
         }
-
-        // Don't auto-show dropdown when updating
-        // if (isValidMunicipality) {
-        //     editBarangay.post {
-        //         editBarangay.showDropDown()
-        //     }
-        // }
     }
 
     private fun setupClickListeners() {

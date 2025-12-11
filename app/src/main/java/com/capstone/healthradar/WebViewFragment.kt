@@ -58,7 +58,6 @@ class WebViewFragment : Fragment() {
         webView.settings.setSupportZoom(true)
         webView.settings.builtInZoomControls = true
         webView.settings.displayZoomControls = false
-
         webView.loadUrl(url)
     }
 

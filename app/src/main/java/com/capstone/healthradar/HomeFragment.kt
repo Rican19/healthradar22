@@ -1,6 +1,5 @@
 package com.capstone.healthradar
 
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
@@ -14,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.toColorInt
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
@@ -47,42 +47,28 @@ class HomeFragment : Fragment() {
     private lateinit var swipeHint: TextView
     private lateinit var monthYearTextView: TextView
     private lateinit var mainNestedScrollView: NestedScrollView
-
-    // New pagination views
     private lateinit var diseaseListViewPager: ViewPager2
     private lateinit var diseasePageTitle: TextView
     private lateinit var diseaseLeftArrow: ImageView
     private lateinit var diseaseRightArrow: ImageView
     private lateinit var diseasePageIndicator: LinearLayout
-
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val TAG = "HomeFragment"
-
-    // Color palette for pie chart and disease breakdown
     private val pieColors = listOf(
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FECA57",
         "#FF9FF3", "#54A0FF", "#5F27CD", "#00D2D3", "#FF9F43",
         "#10AC84", "#EE5A24", "#0984E3", "#A29BFE", "#FD79A8"
     ).map { it.toColorInt() }
-
     private val municipalities = listOf("Mandaue", "Liloan", "Consolacion")
     private var currentMunicipalityIndex = 0
     private var currentWeekFilter = "Week 1"
     private var currentMonthYear = ""
-
-    // Store disease data with colors for each municipality
     private val municipalityDiseaseData = mutableMapOf<Int, List<DiseaseItem>>()
-    // Store disease container views for each municipality
     private val diseaseContainerMap = mutableMapOf<Int, LinearLayout>()
-    // Store scroll views for each municipality
     private val diseaseScrollViewMap = mutableMapOf<Int, ScrollView>()
-
-    // Store disease data for bar chart
     private var barChartDiseases = mutableListOf<String>()
     private var barChartColors = mutableMapOf<String, Int>()
-
-    // Pagination variables
     private var paginatedDiseases = mutableListOf<List<DiseaseItemPage>>()
     private var diseasesPerPage = 5
     private var currentDiseasePage = 0
@@ -112,8 +98,6 @@ class HomeFragment : Fragment() {
         swipeHint = root.findViewById(R.id.swipeHint)
         monthYearTextView = root.findViewById(R.id.monthYearTextView)
         mainNestedScrollView = root.findViewById(R.id.mainNestedScrollView)
-
-        // New pagination views
         diseaseListViewPager = root.findViewById(R.id.diseaseListViewPager)
         diseasePageTitle = root.findViewById(R.id.diseasePageTitle)
         diseaseLeftArrow = root.findViewById(R.id.diseaseLeftArrow)
@@ -127,87 +111,90 @@ class HomeFragment : Fragment() {
         setupWeekSpinner()
         updateMonthYearDisplay()
         loadBarChartData()
-
-        // Update all text and icon colors for theme compatibility
         updateThemeColors()
-
-        // Set greeting text size to match XML
         userNameTv.textSize = 24f
     }
 
     private fun updateThemeColors() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         // Update all text colors
         userNameTv.setTextColor(getPrimaryTextColor())
         monthYearTextView.setTextColor(getSecondaryTextColor())
         diseasePageTitle.setTextColor(getPrimaryTextColor())
         swipeHint.setTextColor(getSecondaryTextColor())
-
-        // Update arrow icon colors
         updateArrowColors()
     }
 
     private fun updateArrowColors() {
         val arrowColor = getPrimaryColor()
 
-        // Programmatically set tint for all arrow icons
         leftArrow.setColorFilter(arrowColor, android.graphics.PorterDuff.Mode.SRC_IN)
         rightArrow.setColorFilter(arrowColor, android.graphics.PorterDuff.Mode.SRC_IN)
         diseaseLeftArrow.setColorFilter(arrowColor, android.graphics.PorterDuff.Mode.SRC_IN)
         diseaseRightArrow.setColorFilter(arrowColor, android.graphics.PorterDuff.Mode.SRC_IN)
     }
 
-    // Helper function to get colors dynamically
     private fun getPrimaryTextColor(): Int {
         return if (isDarkMode()) {
-            Color.WHITE  // White text in dark mode
+            Color.WHITE
         } else {
-            Color.BLACK  // Black text in light mode
+            Color.BLACK
         }
     }
 
     private fun getSecondaryTextColor(): Int {
         return if (isDarkMode()) {
-            Color.parseColor("#CCCCCC")  // Light gray in dark mode
+            Color.parseColor("#CCCCCC")
         } else {
-            Color.parseColor("#666666")  // Dark gray in light mode
+            Color.parseColor("#666666")
         }
     }
 
     private fun getPrimaryColor(): Int {
-        // Your blue color (#6366F1)
         return Color.parseColor("#6366F1")
     }
 
     private fun getCardBackgroundColor(): Int {
         return if (isDarkMode()) {
-            Color.parseColor("#1E1E1E") // Dark gray for dark mode
+            Color.parseColor("#1E1E1E")
         } else {
-            Color.WHITE // White for light mode
+            Color.WHITE
         }
     }
 
     private fun getSurfaceColor(): Int {
         return if (isDarkMode()) {
-            Color.parseColor("#2D2D2D") // Dark gray for dark mode
+            Color.parseColor("#2D2D2D")
         } else {
-            Color.WHITE // White for light mode
+            Color.WHITE
         }
     }
 
     private fun getHighlightColor(): Int {
         return if (isDarkMode()) {
-            Color.parseColor("#4A4A4A") // Darker gray for dark mode highlight
+            Color.parseColor("#4A4A4A")
         } else {
-            Color.parseColor("#F0F0F0") // Light gray for light mode highlight
+            Color.parseColor("#F0F0F0")
         }
     }
 
     private fun isDarkMode(): Boolean {
-        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return currentNightMode == Configuration.UI_MODE_NIGHT_YES
+        // Safe way to check if fragment is attached before accessing resources
+        return if (isAdded && context != null) {
+            val currentNightMode = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+            currentNightMode == Configuration.UI_MODE_NIGHT_YES
+        } else {
+            // Default to light mode if fragment is not attached
+            false
+        }
     }
 
     private fun setupWeekSpinner() {
+        // Check if fragment is attached before setting up spinner
+        if (!isAdded || context == null) return
+
         val currentWeek = getCurrentWeekOfMonth()
         val weekOptions = mutableListOf<String>()
         for (week in 1..4) {
@@ -227,7 +214,6 @@ class HomeFragment : Fragment() {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent)
                 val textView = view.findViewById<TextView>(android.R.id.text1)
-                // Use theme-aware color
                 textView.setTextColor(getPrimaryTextColor())
                 textView.textSize = 14f
                 textView.setTypeface(null, Typeface.BOLD)
@@ -249,7 +235,6 @@ class HomeFragment : Fragment() {
             override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getDropDownView(position, convertView, parent)
                 val textView = view.findViewById<TextView>(android.R.id.text1)
-                // Use theme-aware color
                 textView.setTextColor(getPrimaryTextColor())
                 textView.textSize = 14f
                 textView.setTypeface(null, Typeface.NORMAL)
@@ -311,14 +296,11 @@ class HomeFragment : Fragment() {
         diseaseListViewPager.adapter = DiseaseListPagerAdapter()
         diseaseListViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-        // Set fixed height for the ViewPager2
         diseaseListViewPager.layoutParams.height = dpToPx(250)
 
-        // Disable nested scrolling
         diseaseListViewPager.getChildAt(0)?.let { recyclerView ->
             if (recyclerView is RecyclerView) {
                 recyclerView.isNestedScrollingEnabled = false
-                // Set layout params for RecyclerView inside ViewPager2
                 recyclerView.layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -347,6 +329,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateDiseasePageUI(position: Int) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         val totalPages = paginatedDiseases.size
         if (totalPages > 0) {
             diseasePageTitle.text = "Disease List - Page ${position + 1} of $totalPages"
@@ -364,6 +349,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateDiseasePageIndicator(position: Int) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         diseasePageIndicator.removeAllViews()
         val totalPages = paginatedDiseases.size
 
@@ -382,10 +370,7 @@ class HomeFragment : Fragment() {
         pieChartPager.adapter = PieChartPagerAdapter()
         pieChartPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-        // Prevent ViewPager2 from intercepting vertical scrolls
         pieChartPager.isUserInputEnabled = true
-
-        // Disable nested scrolling in the ViewPager2's RecyclerView to prevent conflicts
         pieChartPager.getChildAt(0)?.let { recyclerView ->
             if (recyclerView is RecyclerView) {
                 recyclerView.isNestedScrollingEnabled = false
@@ -402,7 +387,6 @@ class HomeFragment : Fragment() {
 
             override fun onPageScrollStateChanged(state: Int) {
                 super.onPageScrollStateChanged(state)
-                // Enable/disable main scroll when ViewPager is being scrolled
                 mainNestedScrollView.isNestedScrollingEnabled = state == ViewPager2.SCROLL_STATE_IDLE
             }
         })
@@ -429,6 +413,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupMunicipalityIndicator() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         municipalityIndicator.removeAllViews()
         for (i in municipalities.indices) {
             val dot = View(requireContext()).apply {
@@ -442,6 +429,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateMunicipalityIndicator() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         for (i in 0 until municipalityIndicator.childCount) {
             val dot = municipalityIndicator.getChildAt(i)
             dot.setBackgroundColor(if (i == currentMunicipalityIndex) getPrimaryColor() else Color.parseColor("#E0E0E0"))
@@ -449,12 +439,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateMonthYearDisplay() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         val calendar = Calendar.getInstance()
         val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         currentMonthYear = monthFormat.format(calendar.time)
         val currentWeek = getCurrentWeekOfMonth()
         monthYearTextView.text = "$currentMonthYear • Week $currentWeek"
-        // Use theme-aware color
         monthYearTextView.setTextColor(getSecondaryTextColor())
         monthYearTextView.textSize = 16f
         monthYearTextView.setTypeface(null, Typeface.BOLD)
@@ -470,6 +462,9 @@ class HomeFragment : Fragment() {
                 .whereEqualTo("userAuthId", userId)
                 .get()
                 .addOnSuccessListener { querySnapshot ->
+                    // Check if fragment is still attached before updating UI
+                    if (!isAdded) return@addOnSuccessListener
+
                     if (!querySnapshot.isEmpty) {
                         val document = querySnapshot.documents[0]
                         val firstName = document.getString("firstName") ?: ""
@@ -484,17 +479,28 @@ class HomeFragment : Fragment() {
                     } else {
                         userNameTv.text = "Hello, ${currentUser.email?.substringBefore('@') ?: "User"}"
                     }
-                    // FIXED: Use theme-aware color
                     userNameTv.setTextColor(getPrimaryTextColor())
                     userNameTv.textSize = 24f
                     userNameTv.setTypeface(null, Typeface.BOLD)
                 }
+                .addOnFailureListener { e ->
+                    // Check if fragment is still attached before updating UI
+                    if (!isAdded) return@addOnFailureListener
+
+                    userNameTv.text = "Hello, ${currentUser.email?.substringBefore('@') ?: "User"}"
+                    userNameTv.setTextColor(getPrimaryTextColor())
+                    userNameTv.textSize = 24f
+                    userNameTv.setTypeface(null, Typeface.BOLD)
+                    Log.e(TAG, "Error loading user name", e)
+                }
         } else {
-            userNameTv.text = "Hello, User"
-            // FIXED: Use theme-aware color
-            userNameTv.setTextColor(getPrimaryTextColor())
-            userNameTv.textSize = 24f
-            userNameTv.setTypeface(null, Typeface.BOLD)
+            // Check if fragment is attached before updating UI
+            if (isAdded) {
+                userNameTv.text = "Hello, User"
+                userNameTv.setTextColor(getPrimaryTextColor())
+                userNameTv.textSize = 24f
+                userNameTv.setTypeface(null, Typeface.BOLD)
+            }
         }
     }
 
@@ -520,18 +526,17 @@ class HomeFragment : Fragment() {
                 setDrawAxisLine(true)
                 axisLineColor = getPrimaryTextColor()
                 axisLineWidth = 1f
-                textColor = Color.TRANSPARENT // HIDE TEXT on X-axis
-                textSize = 0f // Make text invisible
+                textColor = Color.TRANSPARENT
+                textSize = 0f
                 granularity = 1f
                 setLabelCount(5, true)
                 labelRotationAngle = 0f
                 setCenterAxisLabels(false)
                 setAvoidFirstLastClipping(true)
                 isGranularityEnabled = true
-                // Remove value formatter to hide labels
                 valueFormatter = object : ValueFormatter() {
                     override fun getFormattedValue(value: Float): String {
-                        return "" // Empty string for all values
+                        return ""
                     }
                 }
             }
@@ -560,12 +565,10 @@ class HomeFragment : Fragment() {
 
             legend.isEnabled = false
 
-            // NEW: Set custom no data text
             setNoDataText("No Disease Data Available")
             setNoDataTextColor(getSecondaryTextColor())
             setNoDataTextTypeface(Typeface.DEFAULT_BOLD)
 
-            // Enable click listener for bar selection
             setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                 override fun onValueSelected(e: Entry?, h: Highlight?) {
                     if (e != null && h != null) {
@@ -582,7 +585,6 @@ class HomeFragment : Fragment() {
                 }
             })
 
-            // Remove extra offset since no labels
             extraBottomOffset = 10f
         }
     }
@@ -596,8 +598,10 @@ class HomeFragment : Fragment() {
             .whereEqualTo("Week", weekNum)
             .get()
             .addOnSuccessListener { snapshot ->
+                // Check if fragment is still attached before processing data
+                if (!isAdded) return@addOnSuccessListener
+
                 try {
-                    // NEW: Check if there are ANY documents at all
                     if (snapshot.isEmpty) {
                         showNoDataInBarChart()
                         showNoDiseaseData()
@@ -608,7 +612,6 @@ class HomeFragment : Fragment() {
                     val diseaseCaseMap = mutableMapOf<String, Int>() // Store case counts
                     val diseaseColorMap = mutableMapOf<String, Int>()
 
-                    // Track all diseases found
                     val allDiseases = mutableSetOf<String>()
 
                     for (doc in snapshot.documents) {
@@ -623,7 +626,6 @@ class HomeFragment : Fragment() {
                             val diseaseName = doc.getString("DiseaseName")?.trim() ?: "Unknown"
 
                             if (cases > 0f && diseaseName.isNotBlank() && diseaseName != "Unknown") {
-                                // Sum up cases for each disease
                                 diseaseMap[diseaseName] = (diseaseMap[diseaseName] ?: 0f) + cases
                                 diseaseCaseMap[diseaseName] = (diseaseCaseMap[diseaseName] ?: 0) + intCases
                                 allDiseases.add(diseaseName)
@@ -631,33 +633,27 @@ class HomeFragment : Fragment() {
                         }
                     }
 
-                    // NEW: Check if diseaseMap is empty AFTER processing
                     if (diseaseMap.isEmpty()) {
                         showNoDataInBarChart()
                         showNoDiseaseData()
                         return@addOnSuccessListener
                     }
 
-                    // Sort diseases by case count (highest first)
                     val sortedDiseases = diseaseMap.entries.sortedByDescending { it.value }
                     val entries = ArrayList<BarEntry>()
                     barChartDiseases.clear()
                     barChartColors.clear()
 
-                    // Create entries and assign colors (NO disease names for X-axis)
                     for ((index, entry) in sortedDiseases.withIndex()) {
                         entries.add(BarEntry(index.toFloat(), entry.value))
                         barChartDiseases.add(entry.key)
 
-                        // Generate a consistent color for each disease based on its name
                         val color = generateColorForDisease(entry.key)
                         barChartColors[entry.key] = color
 
-                        // Store the color mapping for reference
                         diseaseColorMap[entry.key] = color
                     }
 
-                    // Adjust rotation not needed since no labels
                     barChart.xAxis.labelRotationAngle = 0f
                     barChart.extraBottomOffset = 10f
 
@@ -672,7 +668,6 @@ class HomeFragment : Fragment() {
                             }
                         }
 
-                        // Add some visual styling
                         barBorderColor = if (isDarkMode()) Color.parseColor("#444444") else Color.parseColor("#DDDDDD")
                         barBorderWidth = 0.5f
                     }
@@ -685,8 +680,6 @@ class HomeFragment : Fragment() {
                     barChart.data = data
                     barChart.invalidate()
                     barChart.animateY(1000, Easing.EaseInOutCubic)
-
-                    // Update disease list with pagination
                     updateDiseaseListForBarChartWithCases(diseaseColorMap, diseaseCaseMap)
 
                 } catch (ex: Exception) {
@@ -697,15 +690,19 @@ class HomeFragment : Fragment() {
             }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Error loading bar chart data", exception)
-                showNoDataInBarChart()
-                showNoDiseaseData()
+                // Check if fragment is still attached before showing error
+                if (isAdded) {
+                    showNoDataInBarChart()
+                    showNoDiseaseData()
+                }
             }
     }
 
-    /**
-     * Show "No Disease Data Available" message in the bar chart
-     */
+
     private fun showNoDataInBarChart() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         // Clear any existing data
         barChart.clear()
 
@@ -722,10 +719,6 @@ class HomeFragment : Fragment() {
         barChart.invalidate()
     }
 
-    /**
-     * Generate a consistent color for a disease based on its name
-     * This ensures the same disease always gets the same color
-     */
     private fun generateColorForDisease(diseaseName: String): Int {
         // Hash the disease name to get a consistent index
         val hash = abs(diseaseName.hashCode())
@@ -733,46 +726,35 @@ class HomeFragment : Fragment() {
         return pieColors[colorIndex]
     }
 
-    /**
-     * Update the disease list below the bar chart WITH case counts - Paginated
-     */
     private fun updateDiseaseListForBarChartWithCases(
         diseaseColorMap: Map<String, Int>,
         diseaseCaseMap: Map<String, Int>
     ) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         if (diseaseColorMap.isEmpty() || diseaseCaseMap.isEmpty()) {
             showNoDiseaseData()
             return
         }
-
-        // Sort diseases by case count (highest first)
         val sortedDiseases = diseaseCaseMap.entries.sortedByDescending { it.value }
-
-        // Convert to DiseaseItemPage objects
         val diseaseItems = sortedDiseases.map { entry ->
             val diseaseName = entry.key
             val caseCount = entry.value
             val color = diseaseColorMap[diseaseName] ?: generateColorForDisease(diseaseName)
             DiseaseItemPage(diseaseName, caseCount, color)
         }
-
-        // Paginate the diseases
         paginatedDiseases = diseaseItems.chunked(diseasesPerPage).toMutableList()
-
-        // Update the ViewPager2 adapter
         (diseaseListViewPager.adapter as? DiseaseListPagerAdapter)?.updateData(paginatedDiseases)
-
-        // Update UI
         updateDiseasePageUI(0)
-
-        // Reset to first page
         diseaseListViewPager.currentItem = 0
-
-        // Clear selection when new data loads
         selectedDisease = null
     }
 
     private fun showNoDiseaseData() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         paginatedDiseases.clear()
         (diseaseListViewPager.adapter as? DiseaseListPagerAdapter)?.updateData(emptyList())
         diseasePageTitle.text = "No disease data available"
@@ -783,37 +765,30 @@ class HomeFragment : Fragment() {
         selectedDisease = null
     }
 
-    /**
-     * Highlight a disease in the bar chart list
-     */
     private fun highlightDiseaseInBarChartList(diseaseName: String) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         removeHighlightFromBarChartList()
         selectedDisease = diseaseName
-
-        // Find which page contains this disease
         for ((pageIndex, page) in paginatedDiseases.withIndex()) {
             val diseaseIndex = page.indexOfFirst { it.diseaseName == diseaseName }
             if (diseaseIndex != -1) {
-                // Navigate to the correct page
                 diseaseListViewPager.currentItem = pageIndex
-
-                // Also select the corresponding bar in the chart
                 val barIndex = barChartDiseases.indexOf(diseaseName)
                 if (barIndex >= 0) {
                     barChart.highlightValue(barIndex.toFloat(), 0, false)
                 }
-
-                // Update the adapter to show highlight
                 (diseaseListViewPager.adapter as? DiseaseListPagerAdapter)?.updateSelectedDisease(diseaseName)
                 break
             }
         }
     }
 
-    /**
-     * Remove highlight from all items in bar chart list
-     */
     private fun removeHighlightFromBarChartList() {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         selectedDisease = null
         (diseaseListViewPager.adapter as? DiseaseListPagerAdapter)?.updateSelectedDisease(null)
     }
@@ -846,6 +821,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupPieChart(pieChart: PieChart, diseaseContainer: LinearLayout, scrollView: ScrollView, position: Int) {
+        // Check if fragment is attached before setting up chart
+        if (!isAdded) return
+
         pieChart.apply {
             setBackgroundColor(Color.TRANSPARENT)
             setUsePercentValues(false)
@@ -861,7 +839,6 @@ class HomeFragment : Fragment() {
             setExtraOffsets(20f, 20f, 20f, 20f)
             minAngleForSlices = 15f
             setTouchEnabled(true)
-            // FIXED: Changed from "Loading disease data..." to "No disease data available"
             setNoDataText("No disease data available")
             setNoDataTextColor(getSecondaryTextColor())
             setDrawSliceText(false)
@@ -880,14 +857,15 @@ class HomeFragment : Fragment() {
                 }
             })
         }
-
-        // Store the disease container and scroll view for this municipality
         diseaseContainerMap[position] = diseaseContainer
         diseaseScrollViewMap[position] = scrollView
         Log.d(TAG, "Stored container and scroll view for position $position")
     }
 
     private fun highlightDiseaseInList(sliceIndex: Int, municipalityPosition: Int) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         val diseaseList = municipalityDiseaseData[municipalityPosition] ?: return
         val diseaseContainer = diseaseContainerMap[municipalityPosition] ?: return
         val scrollView = diseaseScrollViewMap[municipalityPosition]
@@ -898,29 +876,20 @@ class HomeFragment : Fragment() {
             val selectedDisease = diseaseList[sliceIndex]
             Log.d(TAG, "Looking for disease: ${selectedDisease.disease}")
 
-            // Find and highlight the disease item
+            // highlight the disease
             for (i in 0 until diseaseContainer.childCount) {
                 val view = diseaseContainer.getChildAt(i)
                 if (view is LinearLayout && view.tag?.toString()?.contains("disease_item_") == true) {
-                    // Check if this view corresponds to the selected disease
                     if (view.getChildAt(1) is TextView) {
                         val diseaseTextView = view.getChildAt(1) as TextView
                         if (diseaseTextView.text.toString() == selectedDisease.disease) {
                             Log.d(TAG, "Found disease item at position $i")
-                            // Highlight the item
                             view.setBackgroundColor(getHighlightColor())
-
-                            // Scroll to show the disease item
                             scrollView?.post {
-                                // Calculate position to scroll to
                                 val top = view.top
                                 val scrollViewHeight = scrollView.height
                                 val viewHeight = view.height
-
-                                // Calculate target scroll position to center the item
                                 val targetScroll = top - (scrollViewHeight / 2) + (viewHeight / 2)
-
-                                // Scroll to position
                                 scrollView.smoothScrollTo(0, targetScroll.coerceAtLeast(0))
                             }
                         }
@@ -931,6 +900,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun removeHighlightFromDiseaseList(municipalityPosition: Int) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         val diseaseContainer = diseaseContainerMap[municipalityPosition] ?: return
 
         for (i in 0 until diseaseContainer.childCount) {
@@ -951,6 +923,9 @@ class HomeFragment : Fragment() {
             .whereEqualTo("Week", weekNum)
             .get()
             .addOnSuccessListener { snapshot ->
+                // Check if fragment is still attached before processing data
+                if (!isAdded) return@addOnSuccessListener
+
                 try {
                     Log.d(TAG, "Got ${snapshot.documents.size} documents for $municipality")
 
@@ -994,18 +969,13 @@ class HomeFragment : Fragment() {
 
                     val entries = ArrayList<PieEntry>()
                     val diseaseList = mutableListOf<DiseaseItem>()
-
-                    // Create pie chart entries and disease list items with matching colors
                     for ((index, entry) in sorted.withIndex()) {
                         val disease = entry.key
                         val totalCases = entry.value
                         entries.add(PieEntry(totalCases, disease))
-
-                        // Calculate percentage
                         val percent = if (total > 0f) (totalCases / total * 100f) else 0f
                         val percentInt = percent.roundToInt().coerceAtLeast(0)
 
-                        // Assign color from palette - same color for pie slice and disease item
                         val color = pieColors[index % pieColors.size]
 
                         diseaseList.add(DiseaseItem(disease, totalCases.roundToInt(), percentInt, color))
@@ -1013,11 +983,9 @@ class HomeFragment : Fragment() {
                         Log.d(TAG, "Adding to list: $disease - $totalCases cases ($percentInt%)")
                     }
 
-                    // Store disease data for this municipality
                     municipalityDiseaseData[position] = diseaseList
                     Log.d(TAG, "Stored ${diseaseList.size} diseases for position $position")
 
-                    // Create pie chart dataset with colors
                     val ds = PieDataSet(entries, "").apply {
                         colors = diseaseList.map { it.color }
                         valueTextColor = Color.TRANSPARENT
@@ -1044,13 +1012,19 @@ class HomeFragment : Fragment() {
             }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Error loading pie chart data", exception)
-                pieChart.clear()
-                updateDiseaseList(emptyList(), diseaseContainer)
-                municipalityDiseaseData[position] = emptyList()
+                // Check if fragment is still attached before showing error
+                if (isAdded) {
+                    pieChart.clear()
+                    updateDiseaseList(emptyList(), diseaseContainer)
+                    municipalityDiseaseData[position] = emptyList()
+                }
             }
     }
 
     private fun updateDiseaseList(diseaseList: List<DiseaseItem>, container: LinearLayout) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         container.removeAllViews()
 
         if (diseaseList.isEmpty()) {
@@ -1069,13 +1043,10 @@ class HomeFragment : Fragment() {
 
         Log.d(TAG, "Updating disease list with ${diseaseList.size} items")
 
-        // Add disease items
         for ((index, item) in diseaseList.withIndex()) {
             val diseaseItemView = createDiseaseItem(item, index)
             container.addView(diseaseItemView)
         }
-
-        // Add some bottom padding to ensure scrolling works well
         val paddingView = View(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1089,7 +1060,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun createDiseaseItem(item: DiseaseItem, index: Int): View {
-        // Create the main container
+        // Check if fragment is attached before creating view
+        if (!isAdded || context == null) {
+            return View(context) // Return empty view if not attached
+        }
+
         val container = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -1105,25 +1080,19 @@ class HomeFragment : Fragment() {
             isClickable = true
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             contentDescription = "${item.disease}, ${item.cases} cases, ${item.percent} percent of total"
-
-            // Add tag to identify this as a disease item
             tag = "disease_item_${index}"
 
-            // ADD CLICK LISTENER HERE
             setOnClickListener {
                 Log.d(TAG, "Disease item clicked: ${item.disease}")
-                // Highlight the corresponding pie slice when disease name is clicked
                 highlightPieSliceForDisease(item.disease, index)
             }
         }
 
-        // Create the colored dot - THIS WILL MATCH THE PIE CHART SLICE COLOR
         val colorDot = View(requireContext()).apply {
             layoutParams = LinearLayout.LayoutParams(dpToPx(12), dpToPx(12)).apply {
                 marginEnd = dpToPx(12)
             }
 
-            // Create a circular shape with the exact color from the pie chart
             val gradientDrawable = GradientDrawable()
             gradientDrawable.shape = GradientDrawable.OVAL
             gradientDrawable.setColor(item.color)
@@ -1132,7 +1101,6 @@ class HomeFragment : Fragment() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
 
-        // Create disease name TextView - MAKE SURE TEXT IS SET
         val diseaseName = TextView(requireContext()).apply {
             text = item.disease
             textSize = 14f
@@ -1147,7 +1115,6 @@ class HomeFragment : Fragment() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
 
-        // Create cases count TextView
         val casesCount = TextView(requireContext()).apply {
             text = "${item.cases} cases (${item.percent}%)"
             textSize = 12f
@@ -1156,38 +1123,39 @@ class HomeFragment : Fragment() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }
 
-        // Add views to container
         container.addView(colorDot)
         container.addView(diseaseName)
         container.addView(casesCount)
-
-        // DEBUG: Log the created item
         Log.d(TAG, "Created disease item: ${item.disease} - ${item.cases} cases (${item.percent}%)")
 
         return container
     }
 
-    // NEW FUNCTION: Highlight pie slice when disease name is clicked
     private fun highlightPieSliceForDisease(diseaseName: String, diseaseIndex: Int) {
+        // Check if fragment is attached before updating UI
+        if (!isAdded) return
+
         Log.d(TAG, "Highlighting pie slice for disease: $diseaseName at index $diseaseIndex")
 
-        // Get the current pie chart from the adapter
         val currentPosition = pieChartPager.currentItem
         val adapter = pieChartPager.adapter as? PieChartPagerAdapter
         val pieChart = adapter?.getPieChart(currentPosition)
 
         pieChart?.let {
-            // Highlight the pie slice
             it.highlightValue(diseaseIndex.toFloat(), 0, true)
-
-            // Also highlight the disease item in the list
             highlightDiseaseInList(diseaseIndex, currentPosition)
         }
     }
 
     private fun dpToPx(dp: Int): Int {
-        val density = resources.displayMetrics.density
-        return (dp * density).toInt()
+        // Safe way to convert dp to px
+        return if (isAdded && context != null) {
+            val density = requireContext().resources.displayMetrics.density
+            (dp * density).toInt()
+        } else {
+            // Default fallback
+            (dp * 3).toInt() // Approximate conversion
+        }
     }
 
     private data class DiseaseItem(
@@ -1214,12 +1182,11 @@ class HomeFragment : Fragment() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DiseasePageVH {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_disease_page, parent, false)
-            // Ensure the view takes full width and height
             view.layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            return DiseasePageVH(view)  // FIXED: Changed 'itemView' to 'view'
+            return DiseasePageVH(view)
         }
 
         override fun onBindViewHolder(holder: DiseasePageVH, position: Int) {
@@ -1237,14 +1204,10 @@ class HomeFragment : Fragment() {
                 holder.container.addView(noDataText)
                 return
             }
-
-            // Add disease items for this page
             for ((index, diseaseItem) in pageDiseases.withIndex()) {
                 val diseaseView = createDiseaseItemView(diseaseItem, index)
                 holder.container.addView(diseaseView)
             }
-
-            // Add some bottom padding
             val paddingView = View(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1267,6 +1230,11 @@ class HomeFragment : Fragment() {
         }
 
         private fun createDiseaseItemView(diseaseItem: DiseaseItemPage, index: Int): LinearLayout {
+            // Check if fragment is attached before creating view
+            if (!isAdded || context == null) {
+                return LinearLayout(context)
+            }
+
             val container = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -1291,8 +1259,6 @@ class HomeFragment : Fragment() {
                     highlightDiseaseInBarChartList(diseaseItem.diseaseName)
                 }
             }
-
-            // Bullet point
             val bullet = TextView(requireContext()).apply {
                 text = "•"
                 setTextColor(diseaseItem.color)
@@ -1302,8 +1268,6 @@ class HomeFragment : Fragment() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
             }
-
-            // Disease name
             val diseaseText = TextView(requireContext()).apply {
                 text = diseaseItem.diseaseName
                 setTextColor(getPrimaryTextColor())
@@ -1316,8 +1280,6 @@ class HomeFragment : Fragment() {
                 setSingleLine(true)
                 ellipsize = TextUtils.TruncateAt.END
             }
-
-            // Case count
             val caseCountText = TextView(requireContext()).apply {
                 text = "${diseaseItem.caseCount} cases"
                 setTextColor(getSecondaryTextColor())
@@ -1356,7 +1318,6 @@ class HomeFragment : Fragment() {
         }
 
         override fun onBindViewHolder(holder: PieChartVH, position: Int) {
-            // Store the pie chart reference
             pieCharts[position] = holder.pieChart
 
             val municipality = municipalities[position]
@@ -1369,8 +1330,6 @@ class HomeFragment : Fragment() {
 
             holder.municipalityTitle.text = "$municipality Municipality\n$currentMonth $currentYear • $weekLabel"
             holder.municipalityTitle.contentDescription = "Disease list for $municipality municipality for $weekLabel of $currentMonth $currentYear"
-
-            // Use theme-aware color
             holder.municipalityTitle.setTextColor(getPrimaryTextColor())
 
             setupPieChart(holder.pieChart, holder.diseaseContainer, holder.diseaseScrollView, position)
@@ -1384,7 +1343,6 @@ class HomeFragment : Fragment() {
             notifyItemChanged(currentPosition)
         }
 
-        // Get pie chart by position
         fun getPieChart(position: Int): PieChart? {
             return pieCharts[position]
         }

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true"
     android:padding="12dp">
 
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:text="Create Account"
                 android:textSize="24sp"
-                android:textColor="@color/black"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textStyle="bold" />
 
             <TextView
@@ -43,8 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="Join Health Radar today!"
                 android:textSize="14sp"
-                android:textColor="@color/black"
-                android:alpha="0.8"
+                android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginTop="2dp" />
 
         </LinearLayout>
@@ -56,7 +55,7 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:cardBackgroundColor="@color/white">
+            app:cardBackgroundColor="?android:attr/colorBackground">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -76,7 +75,6 @@
                         android:id="@+id/tilFirstName"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        app:startIconTint="@color/black"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         app:startIconDrawable="@drawable/ic_person"
@@ -85,7 +83,12 @@
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusTopStart="8dp"
                         app:errorEnabled="true"
-                        app:errorTextColor="@color/error_red">
+                        app:errorTextColor="@color/error_red"
+                        app:hintTextColor="?android:attr/textColorSecondary"
+                        app:boxStrokeColor="?android:attr/textColorTertiary"
+                        app:startIconTint="?android:attr/textColorPrimary"
+                        app:boxBackgroundColor="?android:attr/colorBackground"
+                        app:endIconTint="?android:attr/textColorPrimary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etFirstName"
@@ -93,7 +96,7 @@
                             android:layout_height="wrap_content"
                             android:hint="First Name"
                             android:inputType="textCapWords"
-                            android:textColor="@color/black"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:minHeight="44dp" />
 
@@ -107,13 +110,17 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         app:startIconDrawable="@drawable/ic_person"
-                        app:startIconTint="@color/black"
                         app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusTopStart="8dp"
                         app:errorEnabled="true"
-                        app:errorTextColor="@color/error_red">
+                        app:errorTextColor="@color/error_red"
+                        app:hintTextColor="?android:attr/textColorSecondary"
+                        app:boxStrokeColor="?android:attr/textColorTertiary"
+                        app:startIconTint="?android:attr/textColorPrimary"
+                        app:boxBackgroundColor="?android:attr/colorBackground"
+                        app:endIconTint="?android:attr/textColorPrimary">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etLastName"
@@ -121,7 +128,7 @@
                             android:layout_height="wrap_content"
                             android:hint="Last Name"
                             android:inputType="textCapWords"
-                            android:textColor="@color/black"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:minHeight="44dp" />
 
@@ -138,11 +145,15 @@
                     app:startIconDrawable="@drawable/ic_phone"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
-                    app:startIconTint="@color/black"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:errorEnabled="true"
-                    app:errorTextColor="@color/error_red">
+                    app:errorTextColor="@color/error_red"
+                    app:hintTextColor="?android:attr/textColorSecondary"
+                    app:boxStrokeColor="?android:attr/textColorTertiary"
+                    app:startIconTint="?android:attr/textColorPrimary"
+                    app:boxBackgroundColor="?android:attr/colorBackground"
+                    app:endIconTint="?android:attr/textColorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPhone"
@@ -150,7 +161,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Phone Number"
                         android:inputType="phone"
-                        android:textColor="@color/black"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="14sp"
                         android:minHeight="44dp" />
 
@@ -162,14 +173,18 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    app:startIconTint="@color/black"
                     app:startIconDrawable="@drawable/ic_gender"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:errorEnabled="true"
-                    app:errorTextColor="@color/error_red">
+                    app:errorTextColor="@color/error_red"
+                    app:hintTextColor="?android:attr/textColorSecondary"
+                    app:boxStrokeColor="?android:attr/textColorTertiary"
+                    app:startIconTint="?android:attr/textColorPrimary"
+                    app:boxBackgroundColor="?android:attr/colorBackground"
+                    app:endIconTint="?android:attr/textColorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etSex"
@@ -178,7 +193,7 @@
                         android:hint="Sex (Male/Female)"
                         android:inputType="text"
                         android:textSize="14sp"
-                        android:textColor="@color/black"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:minHeight="44dp" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -190,13 +205,17 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:startIconDrawable="@drawable/ic_email"
-                    app:startIconTint="@color/black"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:errorEnabled="true"
-                    app:errorTextColor="@color/error_red">
+                    app:errorTextColor="@color/error_red"
+                    app:hintTextColor="?android:attr/textColorSecondary"
+                    app:boxStrokeColor="?android:attr/textColorTertiary"
+                    app:startIconTint="?android:attr/textColorPrimary"
+                    app:boxBackgroundColor="?android:attr/colorBackground"
+                    app:endIconTint="?android:attr/textColorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etEmail"
@@ -204,7 +223,7 @@
                         android:layout_height="wrap_content"
                         android:hint="Email Address"
                         android:inputType="textEmailAddress"
-                        android:textColor="@color/black"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="14sp"
                         android:minHeight="44dp" />
 
@@ -217,22 +236,26 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:startIconDrawable="@drawable/ic_lock"
-                    app:startIconTint="@color/black"
                     app:endIconMode="password_toggle"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:errorEnabled="true"
-                    app:errorTextColor="@color/error_red">
+                    app:errorTextColor="@color/error_red"
+                    app:hintTextColor="?android:attr/textColorSecondary"
+                    app:boxStrokeColor="?android:attr/textColorTertiary"
+                    app:startIconTint="?android:attr/textColorPrimary"
+                    app:boxBackgroundColor="?android:attr/colorBackground"
+                    app:endIconTint="?android:attr/textColorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Password"
-                        android:textColor="@color/black"
                         android:inputType="textPassword"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="14sp"
                         android:minHeight="44dp" />
 
@@ -245,22 +268,26 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     app:startIconDrawable="@drawable/ic_lock"
-                    app:startIconTint="@color/black"
                     app:endIconMode="password_toggle"
                     app:boxCornerRadiusBottomEnd="8dp"
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusTopEnd="8dp"
                     app:boxCornerRadiusTopStart="8dp"
                     app:errorEnabled="true"
-                    app:errorTextColor="@color/error_red">
+                    app:errorTextColor="@color/error_red"
+                    app:hintTextColor="?android:attr/textColorSecondary"
+                    app:boxStrokeColor="?android:attr/textColorTertiary"
+                    app:startIconTint="?android:attr/textColorPrimary"
+                    app:boxBackgroundColor="?android:attr/colorBackground"
+                    app:endIconTint="?android:attr/textColorPrimary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etConfirmPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Confirm Password"
-                        android:textColor="@color/black"
                         android:inputType="textPassword"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:textSize="14sp"
                         android:minHeight="44dp" />
 
@@ -281,21 +308,25 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         app:startIconDrawable="@drawable/ic_location_city"
-                        app:startIconTint="@color/black"
                         app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusTopStart="8dp"
                         app:errorEnabled="true"
-                        app:errorTextColor="@color/error_red">
+                        app:errorTextColor="@color/error_red"
+                        app:hintTextColor="?android:attr/textColorSecondary"
+                        app:boxStrokeColor="?android:attr/textColorTertiary"
+                        app:startIconTint="?android:attr/textColorPrimary"
+                        app:boxBackgroundColor="?android:attr/colorBackground"
+                        app:endIconTint="?android:attr/textColorPrimary">
 
                         <com.google.android.material.textfield.MaterialAutoCompleteTextView
                             android:id="@+id/actvMunicipal"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Municipality"
-                            android:textColor="@color/black"
                             android:inputType="none"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:minHeight="44dp" />
 
@@ -309,21 +340,25 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         app:startIconDrawable="@android:drawable/ic_menu_mylocation"
-                        app:startIconTint="@color/black"
                         app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusTopStart="8dp"
                         app:errorEnabled="true"
-                        app:errorTextColor="@color/error_red">
+                        app:errorTextColor="@color/error_red"
+                        app:hintTextColor="?android:attr/textColorSecondary"
+                        app:boxStrokeColor="?android:attr/textColorTertiary"
+                        app:startIconTint="?android:attr/textColorPrimary"
+                        app:boxBackgroundColor="?android:attr/colorBackground"
+                        app:endIconTint="?android:attr/textColorPrimary">
 
                         <com.google.android.material.textfield.MaterialAutoCompleteTextView
                             android:id="@+id/actvBarangay"
                             android:layout_width="match_parent"
-                            android:textColor="@color/black"
                             android:layout_height="wrap_content"
                             android:hint="Barangay"
                             android:inputType="none"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="14sp"
                             android:minHeight="44dp"
                             android:enabled="false" />
@@ -338,7 +373,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginBottom="12dp"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    android:indeterminateTint="?android:attr/textColorPrimary" />
 
             </LinearLayout>
 
@@ -355,7 +391,9 @@
             app:cornerRadius="14dp"
             app:iconGravity="textStart"
             app:iconPadding="6dp"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp"
+            app:backgroundTint="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/colorBackground" />
 
         <!-- Login Link -->
         <TextView
@@ -364,12 +402,13 @@
             android:layout_height="wrap_content"
             android:text="Already have an account? Sign In"
             android:textSize="13sp"
-            android:textColor="@color/colorPrimary"
+            android:textColor="?android:attr/textColorPrimary"
             android:layout_gravity="center"
             android:padding="12dp"
             android:minHeight="44dp"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>
 

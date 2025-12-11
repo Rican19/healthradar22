@@ -46,16 +46,14 @@ class MapFragment : Fragment() {
     private var selectedDay: Int = 1 // Default to 1st day
     private var activeSheet: BottomSheetDialog? = null
 
-    // Month names
     private val monthNames = arrayOf(
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     )
 
-    // Default map setup
     private val defaultCenter = GeoPoint(10.384, 123.957)
     private val defaultZoom = 13.5
-    private val zoomOnBarangaySelect = 14.8 // Slight zoom for clarity
+    private val zoomOnBarangaySelect = 14.8
 
     data class Record(
         val diseaseNorm: String,
@@ -76,11 +74,10 @@ class MapFragment : Fragment() {
     )
 
     companion object {
-        // Normalize but keep spaces between words — remove punctuation and diacritics
         fun normalize(name: String?): String {
             if (name == null) return ""
             var n = Normalizer.normalize(name, Normalizer.Form.NFD)
-            n = n.replace("\\p{M}".toRegex(), "") // strip diacritics
+            n = n.replace("\\p{M}".toRegex(), "")
             n = n.lowercase()
                 .replace("city of", "")
                 .replace("city", "")
@@ -90,13 +87,12 @@ class MapFragment : Fragment() {
                 .replace("brgy", "")
                 .replace("barangay", "")
                 .replace("ñ", "n")
-                .replace("[^a-z0-9\\s]".toRegex(), " ") // keep letters, numbers and spaces
+                .replace("[^a-z0-9\\s]".toRegex(), " ")
                 .replace("\\s+".toRegex(), " ")
                 .trim()
             return n
         }
 
-        // Get week of month from a specific date
         fun getWeekFromDate(year: Int, month: Int, day: Int): Int {
             val calendar = Calendar.getInstance()
             calendar.set(year, month, day)
@@ -105,7 +101,6 @@ class MapFragment : Fragment() {
             return week.coerceAtLeast(1).coerceAtMost(4)
         }
 
-        // Check if date is from selected month/year
         fun isDateFromSelectedMonth(dateString: String?, selectedMonth: Int, selectedYear: Int): Boolean {
             if (dateString.isNullOrEmpty()) return false
             return try {
@@ -174,7 +169,6 @@ class MapFragment : Fragment() {
                 selectedDay = day
                 updateMonthDisplay()
 
-                // Calculate week from selected date
                 val calculatedWeek = getWeekFromDate(year, month, day)
                 currentWeekFilter = "Week $calculatedWeek"
 
@@ -200,24 +194,20 @@ class MapFragment : Fragment() {
         val availableWeeks = getAvailableWeeksForSelectedDate()
         val weekOptions = mutableListOf<String>()
 
-        // Add available weeks
         for (week in 1..4) {
             if (week in availableWeeks) {
                 weekOptions.add("Week $week")
             }
         }
 
-        // If no weeks available, show only Week 1 (but disabled)
         if (weekOptions.isEmpty()) {
             weekOptions.add("Week 1")
         }
 
-        // Try to select the week that matches the current date
         val calculatedWeek = getWeekFromDate(selectedYear, selectedMonth, selectedDay)
         val targetWeek = "Week $calculatedWeek"
         val targetIndex = weekOptions.indexOf(targetWeek)
 
-        // If target week is available, select it, otherwise select first available
         if (targetIndex >= 0) {
             currentWeekFilter = targetWeek
         } else if (weekOptions.isNotEmpty()) {
@@ -236,7 +226,6 @@ class MapFragment : Fragment() {
                 textView.textSize = 14f
                 textView.setTypeface(null, Typeface.BOLD)
 
-                // Show current week indicator
                 val weekText = getItem(position) ?: ""
                 val weekNum = weekText.replace("Week ", "").toIntOrNull()
                 val isCurrentDateWeek = weekNum == getWeekFromDate(selectedYear, selectedMonth, selectedDay)
@@ -257,7 +246,6 @@ class MapFragment : Fragment() {
                 textView.textSize = 14f
                 textView.setTypeface(null, Typeface.NORMAL)
 
-                // Show current week indicator in dropdown
                 val weekText = getItem(position) ?: ""
                 val weekNum = weekText.replace("Week ", "").toIntOrNull()
                 val isCurrentDateWeek = weekNum == getWeekFromDate(selectedYear, selectedMonth, selectedDay)
@@ -305,7 +293,6 @@ class MapFragment : Fragment() {
     }
 
     private fun refreshDiseaseSpinner() {
-        // Get diseases that have records for selected month/year and week
         val weekNum = currentWeekFilter.replace("Week ", "").toIntOrNull() ?: 1
         val diseasesWithRecords = getDiseasesWithRecords(selectedMonth, selectedYear, weekNum)
 
@@ -319,8 +306,6 @@ class MapFragment : Fragment() {
         )
         adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
         spinnerDisease.adapter = adapter
-
-        // Try to maintain previous selection if it still exists
         val previousSelection = selectedDisease
         if (previousSelection != null && diseaseOptions.contains(previousSelection)) {
             val index = diseaseOptions.indexOf(previousSelection)
@@ -488,7 +473,6 @@ class MapFragment : Fragment() {
                             )
                         )
 
-                        // Don't add to global disease list here anymore
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing document: ${doc.id}", e)
                     }
@@ -512,7 +496,7 @@ class MapFragment : Fragment() {
         val caseMap = mutableMapOf<String, MutableMap<String, Int>>()
 
         for (r in records) {
-            // Filter by selected month/year AND week
+            // Filter by selected month
             if (!isDateFromSelectedMonth(r.dateReported, selectedMonth, selectedYear)) continue
             if (r.week != weekNum) continue
 
@@ -633,5 +617,25 @@ class MapFragment : Fragment() {
         super.onDestroyView()
         activeSheet?.dismiss()
         exec.shutdownNow()
+    }
+
+    // ADD THIS METHOD
+    fun refreshData() {
+        Log.d(TAG, "Refreshing map data...")
+
+        // Reload cases from Firestore
+        loadCasesFromFirestore()
+
+        // Update month display
+        updateMonthDisplay()
+
+        // Refresh the spinners
+        refreshWeekSpinner()
+        refreshDiseaseSpinner()
+
+        // Re-render polygons
+        renderDiseasePolygons()
+
+        Toast.makeText(requireContext(), "Map data refreshed", Toast.LENGTH_SHORT).show()
     }
 }

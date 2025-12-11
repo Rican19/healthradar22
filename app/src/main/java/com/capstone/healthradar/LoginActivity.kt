@@ -24,11 +24,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
-
-        // Check if user is already logged in
         if (auth.currentUser != null) {
             startActivity(Intent(this, DashBoardActivity::class.java))
             finish()
@@ -45,19 +41,14 @@ class LoginActivity : AppCompatActivity() {
         passwordEditText = findViewById(R.id.passwordEditText)
         LoginButton = findViewById(R.id.LoginButton)
         progressBar = findViewById(R.id.progressBar)
-        Register = findViewById(R.id.Register)  // This finds the TextView with ID "Register"
-
-        // Set button to always be enabled
+        Register = findViewById(R.id.Register)
         LoginButton.isEnabled = true
-
-        // Debug: Check if views are found
         if (Register == null) {
             Toast.makeText(this, "Register TextView not found!", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun setupTextChangeListeners() {
-        // Text change listeners are now only for clearing any visual feedback if needed
         emailEditText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) { }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -72,14 +63,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        // This should work now - Register TextView click listener
         Register.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
 
         LoginButton.setOnClickListener {
-            // Always validate when button is clicked and show warnings
             if (validateFormWithMessages()) {
                 loginUser()
             } else {
@@ -94,8 +83,6 @@ class LoginActivity : AppCompatActivity() {
 
         val isEmailValid = email.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
         val isPasswordValid = password.isNotEmpty() && password.length >= 6
-
-        // Don't control button state here anymore
         return isEmailValid && isPasswordValid
     }
 
@@ -105,22 +92,22 @@ class LoginActivity : AppCompatActivity() {
 
         when {
             email.isEmpty() -> {
-                Toast.makeText(this, "❌ Please enter your email address", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, " Please enter your email address", Toast.LENGTH_LONG).show()
                 emailEditText.requestFocus()
                 return false
             }
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                Toast.makeText(this, "❌ Please enter a valid email address", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, " Please enter a valid email address", Toast.LENGTH_LONG).show()
                 emailEditText.requestFocus()
                 return false
             }
             password.isEmpty() -> {
-                Toast.makeText(this, "❌ Please enter your password", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, " Please enter your password", Toast.LENGTH_LONG).show()
                 passwordEditText.requestFocus()
                 return false
             }
             password.length < 6 -> {
-                Toast.makeText(this, "🔒 Password must be at least 6 characters", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, " Password must be at least 6 characters", Toast.LENGTH_LONG).show()
                 passwordEditText.requestFocus()
                 return false
             }
@@ -132,8 +119,6 @@ class LoginActivity : AppCompatActivity() {
     private fun loginUser() {
         val email = emailEditText.text.toString().trim()
         val password = passwordEditText.text.toString().trim()
-
-        // UI State
         setLoadingState(true)
 
         auth.signInWithEmailAndPassword(email, password)
@@ -154,13 +139,11 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleLoginError(exception: Exception?) {
         val errorMessage = when (exception) {
-            is FirebaseAuthInvalidUserException -> "❌ No account found with this email."
-            is FirebaseAuthInvalidCredentialsException -> "🔒 Invalid password. Please try again."
-            else -> "❌ Authentication failed: ${exception?.localizedMessage ?: "Unknown error"}"
+            is FirebaseAuthInvalidUserException -> " No account found with this email."
+            is FirebaseAuthInvalidCredentialsException -> " Invalid password. Please try again."
+            else -> " Authentication failed: ${exception?.localizedMessage ?: "Unknown error"}"
         }
         Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-
-        // Clear password field on error for security
         passwordEditText.text.clear()
         passwordEditText.requestFocus()
     }
@@ -169,8 +152,6 @@ class LoginActivity : AppCompatActivity() {
         progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         LoginButton.isEnabled = !isLoading
         LoginButton.text = if (isLoading) "Signing in..." else "Sign In"
-
-        // Disable other interactive elements during loading
         emailEditText.isEnabled = !isLoading
         passwordEditText.isEnabled = !isLoading
         Register.isEnabled = !isLoading

@@ -18,14 +18,12 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
-    // Input fields
     private lateinit var etFirstName: EditText
     private lateinit var etLastName: EditText
     private lateinit var etPhone: EditText
@@ -39,7 +37,6 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var tvLogin: TextView
 
-    // TextInputLayouts for error handling
     private lateinit var tilFirstName: TextInputLayout
     private lateinit var tilLastName: TextInputLayout
     private lateinit var tilPhone: TextInputLayout
@@ -50,7 +47,6 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var tilMunicipal: TextInputLayout
     private lateinit var tilBarangay: TextInputLayout
 
-    // Barangay data for each municipality
     private val liloanBarangays = arrayOf(
         "Select Barangay",
         "Cabadiangan","Calero","Catarman","Cotcot","Jubay","Lataban",
@@ -92,7 +88,7 @@ class SignUpActivity : AppCompatActivity() {
             Log.d(TAG, "Firebase initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Firebase initialization failed: ${e.message}")
-            showToast("❌ App configuration error. Please restart the app.")
+            showToast(" App configuration error. Please restart the app.")
             return
         }
 
@@ -106,7 +102,6 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun initializeViews() {
         try {
-            // EditText fields
             etFirstName = findViewById(R.id.etFirstName)
             etLastName = findViewById(R.id.etLastName)
             etPhone = findViewById(R.id.etPhone)
@@ -120,7 +115,6 @@ class SignUpActivity : AppCompatActivity() {
             progressBar = findViewById(R.id.progressBar)
             tvLogin = findViewById(R.id.tvLogin)
 
-            // TextInputLayout fields
             tilFirstName = findViewById(R.id.tilFirstName)
             tilLastName = findViewById(R.id.tilLastName)
             tilPhone = findViewById(R.id.tilPhone)
@@ -131,15 +125,13 @@ class SignUpActivity : AppCompatActivity() {
             tilMunicipal = findViewById(R.id.tilMunicipal)
             tilBarangay = findViewById(R.id.tilBarangay)
 
-            // Set initial state - BUTTON IS NOW ALWAYS ENABLED
             btnSignUp.isEnabled = true
             progressBar.visibility = View.GONE
 
-            // Clear all errors initially
             clearAllErrors()
         } catch (e: Exception) {
             Log.e(TAG, "View initialization failed: ${e.message}")
-            showToast("❌ App layout error. Please restart the app.")
+            showToast(" App layout error. Please restart the app.")
         }
     }
 
@@ -152,7 +144,6 @@ class SignUpActivity : AppCompatActivity() {
         actvMunicipal.dropDownHeight = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
         actvMunicipal.dropDownWidth = android.view.ViewGroup.LayoutParams.MATCH_PARENT
 
-        // Set up initial barangay dropdown (disabled)
         val initialBarangayAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, arrayOf("Select Municipality first"))
         actvBarangay.setAdapter(initialBarangayAdapter)
         actvBarangay.isEnabled = false
@@ -160,7 +151,6 @@ class SignUpActivity : AppCompatActivity() {
         actvBarangay.dropDownHeight = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
         actvBarangay.dropDownWidth = android.view.ViewGroup.LayoutParams.MATCH_PARENT
 
-        // Municipality selection listener
         actvMunicipal.setOnItemClickListener { parent, view, position, id ->
             val selectedMunicipality = parent.getItemAtPosition(position).toString()
             Log.d(TAG, "Municipality selected: $selectedMunicipality")
@@ -168,7 +158,6 @@ class SignUpActivity : AppCompatActivity() {
             clearError(tilMunicipal)
         }
 
-        // Force show dropdown when municipality field gains focus
         actvMunicipal.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
                 actvMunicipal.showDropDown()
@@ -215,12 +204,11 @@ class SignUpActivity : AppCompatActivity() {
 
         btnSignUp.setOnClickListener {
             Log.d(TAG, "Sign up button clicked")
-            // Always trigger validation when button is clicked
             if (validateFormWithMessages()) {
                 registerUser()
             } else {
                 Log.w(TAG, "Form validation failed - showing field errors")
-                showToast("⚠️ Please fix the errors in the form")
+                showToast(" Please fix the errors in the form")
             }
         }
 
@@ -228,7 +216,7 @@ class SignUpActivity : AppCompatActivity() {
             if (actvBarangay.isEnabled) {
                 actvBarangay.showDropDown()
             } else {
-                showToast("📍 Please select a municipality first")
+                showToast(" Please select a municipality first")
                 setError(tilBarangay, "Select municipality first")
             }
         }
@@ -248,8 +236,6 @@ class SignUpActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         }
-
-        // Add text watchers to all EditText fields
         etFirstName.addTextChangedListener(textWatcher)
         etLastName.addTextChangedListener(textWatcher)
         etPhone.addTextChangedListener(textWatcher)
@@ -276,7 +262,6 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun clearErrorsOnTextChange() {
-        // Clear errors when user starts typing in any field
         clearError(tilFirstName)
         clearError(tilLastName)
         clearError(tilPhone)
@@ -352,7 +337,6 @@ class SignUpActivity : AppCompatActivity() {
             val selectedMunicipality = actvMunicipal.text.toString().trim()
             val selectedBarangay = actvBarangay.text.toString().trim()
 
-            // Clear all errors first
             clearAllErrors()
 
             var isValid = true
@@ -470,8 +454,6 @@ class SignUpActivity : AppCompatActivity() {
                     isValid = false
                 }
             }
-
-            // Focus on the first error field
             firstErrorField?.let {
                 Handler(Looper.getMainLooper()).postDelayed({
                     it.requestFocus()
@@ -481,7 +463,7 @@ class SignUpActivity : AppCompatActivity() {
             return isValid
         } catch (e: Exception) {
             Log.e(TAG, "Form validation with messages error: ${e.message}")
-            showToast("❌ Form validation error. Please check your inputs.")
+            showToast(" Form validation error. Please check your inputs.")
             return false
         }
     }
@@ -512,7 +494,7 @@ class SignUpActivity : AppCompatActivity() {
                         } else {
                             Log.e(TAG, "User ID is null after successful auth")
                             setLoadingState(false)
-                            showToast("❌ User creation failed. Please try again.")
+                            showToast(" User creation failed. Please try again.")
                         }
                     } else {
                         Log.e(TAG, "Firebase auth failed: ${task.exception?.message}")
@@ -528,7 +510,7 @@ class SignUpActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Exception during registration: ${e.message}")
             setLoadingState(false)
-            showToast("❌ Registration error: ${e.localizedMessage}")
+            showToast(" Registration error: ${e.localizedMessage}")
         }
     }
 
@@ -583,21 +565,21 @@ class SignUpActivity : AppCompatActivity() {
 
                 when {
                     e.message?.contains("permission", ignoreCase = true) == true -> {
-                        showToast("🔐 Database permission denied. Please update Firestore security rules.")
+                        showToast(" Database permission denied. Please update Firestore security rules.")
                         Log.e(TAG, "Firestore security rules are blocking write access")
                     }
                     e.message?.contains("network", ignoreCase = true) == true -> {
-                        showToast("🌐 Network error. Please check your internet connection.")
+                        showToast(" Network error. Please check your internet connection.")
                     }
                     else -> {
-                        showToast("❌ Failed to save user data: ${e.message ?: "Database error"}")
+                        showToast(" Failed to save user data: ${e.message ?: "Database error"}")
                     }
                 }
 
                 auth.currentUser?.delete()?.addOnCompleteListener { deleteTask ->
                     if (deleteTask.isSuccessful) {
                         Log.d(TAG, "Rollback: Firebase auth user deleted")
-                        showToast("🔄 Registration rolled back due to database error.")
+                        showToast(" Registration rolled back due to database error.")
                     } else {
                         Log.e(TAG, "Rollback failed: Could not delete auth user")
                     }
@@ -610,11 +592,11 @@ class SignUpActivity : AppCompatActivity() {
         Log.e(TAG, "Registration error: ${exception?.javaClass?.simpleName} - ${exception?.message}")
 
         val errorMessage = when (exception) {
-            is FirebaseAuthUserCollisionException -> "❌ Email already registered. Please login instead."
-            is FirebaseAuthWeakPasswordException -> "🔒 Password is too weak. Please use a stronger password with at least 6 characters."
-            is FirebaseAuthInvalidCredentialsException -> "❌ Invalid email format. Please check your email address."
-            is FirebaseNetworkException -> "🌐 Network error. Please check your internet connection."
-            else -> "❌ Registration failed: ${exception?.localizedMessage ?: "Unknown error. Please try again."}"
+            is FirebaseAuthUserCollisionException -> " Email already registered. Please login instead."
+            is FirebaseAuthWeakPasswordException -> " Password is too weak. Please use a stronger password with at least 6 characters."
+            is FirebaseAuthInvalidCredentialsException -> " Invalid email format. Please check your email address."
+            is FirebaseNetworkException -> " Network error. Please check your internet connection."
+            else -> "Registration failed: ${exception?.localizedMessage ?: "Unknown error. Please try again."}"
         }
         showToast(errorMessage)
     }
@@ -646,7 +628,7 @@ class SignUpActivity : AppCompatActivity() {
             Log.d(TAG, "Navigation to LoginActivity successful")
         } catch (e: Exception) {
             Log.e(TAG, "Navigation to LoginActivity failed: ${e.message}")
-            showToast("❌ Navigation error. Please try again.")
+            showToast("Navigation error. Please try again.")
         }
     }
 

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,8 +34,6 @@ class NewsFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var toolbar: MaterialToolbar
-
-    // Make these nullable and initialize them safely
     private var fabScrollToTop: FloatingActionButton? = null
     private var errorLayout: View? = null
 
@@ -55,17 +54,12 @@ class NewsFragment : Fragment() {
     }
 
     private fun initializeViews(view: View) {
-        // Initialize main views (these should exist in your layout)
         recyclerView = view.findViewById(R.id.recyclerViewNews)
         progressBar = view.findViewById(R.id.progressBar)
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
         toolbar = view.findViewById(R.id.toolbar)
-
-        // Safely initialize optional views - check if they exist in layout
-        fabScrollToTop = view.findViewById(R.id.fabScrollToTop) // This might not exist
-        errorLayout = view.findViewById(R.id.errorLayout) // This might not exist
-
-        // Setup retry button if error layout exists
+        fabScrollToTop = view.findViewById(R.id.fabScrollToTop)
+        errorLayout = view.findViewById(R.id.errorLayout)
         errorLayout?.let { errorView ->
             val retryButton = errorView.findViewById<TextView?>(R.id.buttonRetry)
             retryButton?.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
@@ -81,7 +75,6 @@ class NewsFragment : Fragment() {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                // Only handle FAB if it exists
                 fabScrollToTop?.let { fab ->
                     if (dy > 0 && fab.visibility == View.VISIBLE) {
                         fab.hide()
@@ -94,7 +87,6 @@ class NewsFragment : Fragment() {
     }
 
     private fun setupSwipeRefresh() {
-        // Set light theme colors for swipe refresh
         swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
             ContextCompat.getColor(requireContext(), R.color.white)
         )
@@ -110,7 +102,6 @@ class NewsFragment : Fragment() {
     }
 
     private fun setupFab() {
-        // Only setup FAB if it exists
         fabScrollToTop?.let { fab ->
             fab.setColorFilter(ContextCompat.getColor(requireContext(), R.color.white))
             fab.setOnClickListener {
@@ -134,7 +125,6 @@ class NewsFragment : Fragment() {
 
     private fun fetchNews() {
         progressBar.visibility = View.VISIBLE
-        // Hide error layout if it exists
         errorLayout?.visibility = View.GONE
         recyclerView.visibility = View.VISIBLE
 
@@ -172,12 +162,10 @@ class NewsFragment : Fragment() {
 
     private fun showError(title: String, message: String) {
         recyclerView.visibility = View.GONE
-        // If error layout doesn't exist, just show a toast
         if (errorLayout == null) {
             Toast.makeText(requireContext(), "$title: $message", Toast.LENGTH_LONG).show()
         } else {
             errorLayout?.visibility = View.VISIBLE
-            // You can add custom error handling here if needed
         }
     }
 
@@ -188,15 +176,10 @@ class NewsFragment : Fragment() {
             Toast.makeText(requireContext(), "No link available for this article", Toast.LENGTH_SHORT).show()
             return
         }
-
-        // Ensure URL has proper protocol
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             url = "https://$url"
         }
-
-        // Try multiple approaches to open the link
         if (!tryOpenWithBrowser(url) && !tryOpenWithCustomTabs(url)) {
-            // If all else fails, show options to user
             showNoBrowserOptions(url)
         }
     }
@@ -205,8 +188,6 @@ class NewsFragment : Fragment() {
         return try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-            // Check if there's an app that can handle this intent
             if (intent.resolveActivity(requireContext().packageManager) != null) {
                 startActivity(intent)
                 true
@@ -220,11 +201,8 @@ class NewsFragment : Fragment() {
 
     private fun tryOpenWithCustomTabs(url: String): Boolean {
         return try {
-            // Try with a more generic intent that might work on some devices
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-            // Add category to make it more likely to find a handler
             intent.addCategory(Intent.CATEGORY_BROWSABLE)
 
             startActivity(intent)
@@ -263,7 +241,6 @@ class NewsFragment : Fragment() {
 
     private fun showSimpleWebView(url: String) {
         try {
-            // Create a simple dialog with WebView
             val dialog = android.app.AlertDialog.Builder(requireContext()).create()
             val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webview, null)
 
@@ -271,7 +248,6 @@ class NewsFragment : Fragment() {
             val progressBar = dialogView.findViewById<ProgressBar>(R.id.progressBar)
             val btnClose = dialogView.findViewById<Button>(R.id.btnClose)
 
-            // Configure WebView
             webView.settings.javaScriptEnabled = true
             webView.settings.domStorageEnabled = true
             webView.settings.setSupportZoom(true)
@@ -296,8 +272,6 @@ class NewsFragment : Fragment() {
 
             dialog.setView(dialogView)
             dialog.show()
-
-            // Set dialog window size
             dialog.window?.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -305,8 +279,20 @@ class NewsFragment : Fragment() {
 
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "Cannot display web content", Toast.LENGTH_SHORT).show()
-            // Fallback to clipboard
             copyToClipboard(url)
         }
+    }
+
+    // ADD THIS METHOD
+    fun refreshData() {
+        Log.d("NewsFragment", "Refreshing news data...")
+
+        // Fetch news again
+        fetchNews()
+
+        // Scroll to top
+        recyclerView.scrollToPosition(0)
+
+        Toast.makeText(requireContext(), "News refreshed", Toast.LENGTH_SHORT).show()
     }
 }

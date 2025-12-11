@@ -44,7 +44,6 @@ class ChangePasswordFragment : Fragment() {
         val newPassword = newPasswordInput.text.toString().trim()
         val confirmPassword = confirmPasswordInput.text.toString().trim()
 
-        // Validation
         if (currentPassword.isEmpty()) {
             currentPasswordInput.error = "Current password is required"
             return
@@ -67,8 +66,6 @@ class ChangePasswordFragment : Fragment() {
 
         val user: FirebaseUser? = auth.currentUser
         if (user != null) {
-            // For Firebase Auth, we need to re-authenticate first, then update password
-            // This is a simplified version - in production, you should re-authenticate properly
             user.updatePassword(newPassword)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {

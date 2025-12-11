@@ -22,18 +22,16 @@ class DashBoardActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private val TAG = "DashBoardActivity"
 
-    // Track subscription state
     private var currentTopic: String? = null
     private var isSubscribing = false
 
-    // Notification permission launcher (Android 13+)
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isFinishing || isDestroyed) return@registerForActivityResult
 
             if (isGranted) {
                 Log.d(TAG, "Notification permission granted")
-                initializeFCM()
+                setupFCM()
             } else {
                 Log.w(TAG, "Notification permission denied")
                 Toast.makeText(applicationContext, "Notifications may be limited", Toast.LENGTH_SHORT).show()
@@ -53,8 +51,6 @@ class DashBoardActivity : AppCompatActivity() {
         setContentView(R.layout.activity_dashboard)
 
         bottomNavigationView = findViewById(R.id.bottom_navigation)
-
-        // Default fragment
         bottomNavigationView.selectedItemId = R.id.nav_home
         loadFragment(HomeFragment())
 
@@ -65,44 +61,12 @@ class DashBoardActivity : AppCompatActivity() {
                 R.id.nav_map -> loadFragment(MapFragment())
                 R.id.nav_records -> loadFragment(RecordFragment())
                 R.id.nav_profile -> loadFragment(ProfileFragment())
-                else -> false
             }
             true
         }
 
-        // Initialize FCM
-        initializeFCM()
-
-        // Handle notifications that opened the app
-        handleNotificationData(intent)
-    }
-
-    private fun initializeFCM() {
         askNotificationPermission()
-    }
-
-    private fun handleNotificationData(intent: Intent?) {
-        intent?.extras?.let { bundle ->
-            if (bundle.containsKey("barangay") || bundle.containsKey("title")) {
-                val barangay = bundle.getString("barangay")
-                val municipality = bundle.getString("municipality")
-                val title = bundle.getString("title")
-                val body = bundle.getString("body")
-                val type = bundle.getString("notification_type")
-
-                Log.d(TAG, "Opened from notification: barangay=$barangay, muni=$municipality")
-
-                Toast.makeText(this, title ?: body ?: "New notification", Toast.LENGTH_LONG).show()
-
-                if (type == "news") {
-                    bottomNavigationView.selectedItemId = R.id.nav_news
-                    loadFragment(NewsFragment())
-                } else {
-                    bottomNavigationView.selectedItemId = R.id.nav_home
-                    loadFragment(HomeFragment())
-                }
-            }
-        }
+        handleNotificationData(intent)
     }
 
     private fun loadFragment(fragment: Fragment): Boolean {
@@ -112,6 +76,27 @@ class DashBoardActivity : AppCompatActivity() {
         return true
     }
 
+    private fun handleNotificationData(intent: Intent?) {
+        intent?.extras?.let { bundle ->
+            val title = bundle.getString("title")
+            val body = bundle.getString("body")
+            val type = bundle.getString("notification_type")
+
+            if (title != null || body != null) {
+                Toast.makeText(this, title ?: body ?: "New notification", Toast.LENGTH_LONG).show()
+            }
+
+            if (type == "news") {
+                bottomNavigationView.selectedItemId = R.id.nav_news
+                loadFragment(NewsFragment())
+            } else {
+                bottomNavigationView.selectedItemId = R.id.nav_home
+                loadFragment(HomeFragment())
+            }
+        }
+    }
+
+    /** Ask runtime notification permission for Android 13+ */
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
@@ -138,6 +123,7 @@ class DashBoardActivity : AppCompatActivity() {
     private fun getFCMToken() {
         FirebaseMessaging.getInstance().token
             .addOnSuccessListener { token ->
+                Log.d(TAG, "FCM Token: $token")
                 saveFCMToken(token)
                 subscribeToUserLocationTopic()
             }
@@ -147,18 +133,17 @@ class DashBoardActivity : AppCompatActivity() {
     }
 
     private fun saveFCMToken(token: String) {
-        val sharedPref = getSharedPreferences("FCM_DEBUG", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("FCM_PREFERENCES", MODE_PRIVATE)
         sharedPref.edit().putString("fcm_token", token).apply()
     }
 
-    // 🔥🔥 SUBSCRIBE TO: location_<barangay>_<municipality> 🔥🔥
-    private fun subscribeToUserLocationTopic() {
+    /** Subscribe only to user's barangay + municipality topic */
+    fun subscribeToUserLocationTopic() {
+        val userId = auth.currentUser?.uid ?: return
         if (isSubscribing) return
         isSubscribing = true
 
-        val userId = auth.currentUser?.uid ?: return
         val db = FirebaseFirestore.getInstance()
-
         db.collection("healthradarDB")
             .document("users")
             .collection("user")
@@ -166,28 +151,33 @@ class DashBoardActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { snap ->
                 if (snap.isEmpty) {
-                    Log.e(TAG, "User record not found in Firestore")
+                    Log.e(TAG, "User record not found")
                     isSubscribing = false
                     return@addOnSuccessListener
                 }
 
                 val doc = snap.documents[0]
-
                 val barangay = doc.getString("barangay")
                 val municipality = doc.getString("municipality")
 
-                if (barangay == null || municipality == null) {
-                    Log.e(TAG, "Missing barangay/municipality in user record")
+                if (barangay.isNullOrBlank() || municipality.isNullOrBlank()) {
+                    Log.e(TAG, "Missing barangay/municipality, cannot subscribe")
                     isSubscribing = false
                     return@addOnSuccessListener
                 }
 
-                val topic = "location_${barangay.lowercase().replace(" ", "")}_${municipality.lowercase().replace(" ", "")}"
+                // Save locally for MyFirebaseMessagingService
+                val sharedPref = getSharedPreferences("FCM_PREFERENCES", MODE_PRIVATE)
+                sharedPref.edit()
+                    .putString("user_barangay", barangay)
+                    .putString("user_municipality", municipality)
+                    .apply()
 
+                val topic = "location_${barangay.lowercase().replace(" ", "")}_${municipality.lowercase().replace(" ", "")}"
                 manageTopicSubscription(topic)
             }
             .addOnFailureListener {
-                Log.e(TAG, "Error reading user document", it)
+                Log.e(TAG, "Error fetching user data", it)
                 isSubscribing = false
             }
     }
@@ -211,16 +201,12 @@ class DashBoardActivity : AppCompatActivity() {
                 saveSubscriptionInfo(topic)
                 Log.d(TAG, "Subscribed to topic: $topic")
             }
-            .addOnFailureListener {
-                Log.e(TAG, "Failed to subscribe", it)
-            }
-            .addOnCompleteListener {
-                isSubscribing = false
-            }
+            .addOnFailureListener { Log.e(TAG, "Failed to subscribe", it) }
+            .addOnCompleteListener { isSubscribing = false }
     }
 
     private fun saveSubscriptionInfo(topic: String) {
-        val sharedPref = getSharedPreferences("FCM_DEBUG", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("FCM_PREFERENCES", MODE_PRIVATE)
         sharedPref.edit().putString("subscribed_topic", topic).apply()
     }
 
@@ -229,11 +215,23 @@ class DashBoardActivity : AppCompatActivity() {
         subscribeToUserLocationTopic()
     }
 
+    /** Strict logout to prevent receiving notifications after logout */
     fun logoutUser() {
-        currentTopic?.let {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic(it)
+        currentTopic?.let { topic ->
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic)
+                .addOnCompleteListener {
+                    Log.d(TAG, "Unsubscribed from topic: $topic")
+                }
         }
-        FirebaseMessaging.getInstance().unsubscribeFromTopic("barangay")
+
+        FirebaseMessaging.getInstance().deleteToken()
+            .addOnCompleteListener {
+                Log.d(TAG, "FCM token deleted")
+            }
+
+        val sharedPref = getSharedPreferences("FCM_PREFERENCES", MODE_PRIVATE)
+        sharedPref.edit().clear().apply()
+        currentTopic = null
 
         auth.signOut()
 

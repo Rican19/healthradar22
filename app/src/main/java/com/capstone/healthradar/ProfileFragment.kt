@@ -2,15 +2,16 @@ package com.capstone.healthradar
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.capstone.healthradar.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import android.widget.Toast
-import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
 
 class ProfileFragment : Fragment() {
 
@@ -39,45 +40,15 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // Main Edit Profile Button
-        binding.editProfileButton.setOnClickListener {
-            navigateToEditProfile()
-        }
-
-        // Quick Action - Edit Profile Card
-        binding.editProfileCard.setOnClickListener {
-            navigateToEditProfile()
-        }
-
-        // Change Password Card (in security section)
-        binding.changePasswordCard.setOnClickListener {
-            navigateToChangePassword()
-        }
-
-        // Quick Action - Change Password Card
-        binding.changePasswordQuickCard.setOnClickListener {
-            navigateToChangePassword()
-        }
-
-        // Login Activity Card
-        binding.loginActivityCard.setOnClickListener {
-            showLoginActivityMessage()
-        }
-
-        // Delete Account Button
-        binding.deleteAccountButton.setOnClickListener {
-            showDeleteAccountConfirmation()
-        }
-
-        // Logout Button
-        binding.logoutButton.setOnClickListener {
-            showLogoutConfirmation()
-        }
+        binding.editProfileButton.setOnClickListener { navigateToEditProfile() }
+        binding.editProfileCard.setOnClickListener { navigateToEditProfile() }
+        binding.changePasswordQuickCard.setOnClickListener { navigateToChangePassword() }
+        binding.deleteAccountButton.setOnClickListener { showDeleteAccountConfirmation() }
+        binding.logoutButton.setOnClickListener { showLogoutConfirmation() }
     }
 
     private fun loadUserData() {
         showLoading(true)
-
         val user = auth.currentUser
         if (user != null) {
             binding.emailTextView.text = user.email ?: "No email"
@@ -89,7 +60,6 @@ class ProfileFragment : Fragment() {
                 .get()
                 .addOnSuccessListener { querySnapshot ->
                     showLoading(false)
-
                     Log.d("ProfileFragment", "Total documents found: ${querySnapshot.documents.size}")
 
                     if (querySnapshot.documents.isNotEmpty()) {
@@ -127,12 +97,10 @@ class ProfileFragment : Fragment() {
         Log.d("ProfileFragment", "=== DEBUGGING ALL FIELDS ===")
         Log.d("ProfileFragment", "Document ID: ${document.id}")
 
-        // Log ALL fields and their exact names
         document.data?.forEach { (fieldName, fieldValue) ->
             Log.d("ProfileFragment", "FIELD: '$fieldName' = '$fieldValue' (Type: ${fieldValue?.javaClass?.simpleName})")
         }
 
-        // Check for barangay field with different spellings/cases
         val possibleBarangayFields = listOf(
             "barangay", "Barangay", "BARANGAY", "barangayName", "barangay_name",
             "brgy", "Brgy", "BRGY", "barrio", "Barrio"
@@ -145,7 +113,6 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        // Also check what fields contain "barangay" in the name
         document.data?.keys?.forEach { fieldName ->
             if (fieldName.contains("barangay", ignoreCase = true) ||
                 fieldName.contains("brgy", ignoreCase = true)) {
@@ -158,10 +125,7 @@ class ProfileFragment : Fragment() {
     private fun displayUserData(document: com.google.firebase.firestore.DocumentSnapshot) {
         Log.d("ProfileFragment", "=== DISPLAYING USER DATA ===")
 
-        // Try different possible field names for barangay
         val barangay = findBarangayValue(document)
-
-        // Get other values
         val firstName = document.getString("firstName") ?: ""
         val lastName = document.getString("lastName") ?: ""
         val phone = document.getString("phone") ?: ""
@@ -173,21 +137,17 @@ class ProfileFragment : Fragment() {
         Log.d("ProfileFragment", "Final values - municipality: '$municipality'")
         Log.d("ProfileFragment", "Final values - barangay: '$barangay'")
 
-        // Update UI on main thread
         requireActivity().runOnUiThread {
             binding.fullNameTextView.text = "$firstName $lastName".trim()
             binding.phoneTextView.text = if (phone.isNotEmpty()) phone else "Not provided"
             binding.municipalityTextView.text = if (municipality.isNotEmpty()) municipality else "Not provided"
             binding.barangayTextView.text = if (barangay.isNotEmpty()) barangay else "Not provided"
 
-            setupUserAvatar(firstName, lastName)
-
             Log.d("ProfileFragment", "UI Updated - Barangay: '${binding.barangayTextView.text}'")
         }
     }
 
     private fun findBarangayValue(document: com.google.firebase.firestore.DocumentSnapshot): String {
-        // Try different possible field names in order of likelihood
         val possibleFields = listOf(
             "barangay", "Barangay", "BARANGAY", "barangayName", "barangay_name",
             "brgy", "Brgy", "BRGY", "barrio", "Barrio", "BarangayName"
@@ -196,12 +156,12 @@ class ProfileFragment : Fragment() {
         for (fieldName in possibleFields) {
             val value = document.getString(fieldName)
             if (!value.isNullOrEmpty()) {
-                Log.d("ProfileFragment", "✅ USING BARANGAY FROM FIELD: '$fieldName' = '$value'")
+                Log.d("ProfileFragment", " USING BARANGAY FROM FIELD: '$fieldName' = '$value'")
                 return value
             }
         }
 
-        Log.d("ProfileFragment", "❌ No barangay field found with any known name")
+        Log.d("ProfileFragment", " No barangay field found with any known name")
         return ""
     }
 
@@ -211,18 +171,7 @@ class ProfileFragment : Fragment() {
             binding.phoneTextView.text = "Not provided"
             binding.municipalityTextView.text = "Not provided"
             binding.barangayTextView.text = "Not provided"
-            binding.userAvatarText.text = "U"
         }
-    }
-
-    private fun setupUserAvatar(firstName: String, lastName: String) {
-        val initials = when {
-            firstName.isNotEmpty() && lastName.isNotEmpty() -> "${firstName.first()}${lastName.first()}"
-            firstName.isNotEmpty() -> firstName.first().toString()
-            lastName.isNotEmpty() -> lastName.first().toString()
-            else -> "U"
-        }
-        binding.userAvatarText.text = initials.uppercase()
     }
 
     private fun navigateToEditProfile() {
@@ -237,10 +186,6 @@ class ProfileFragment : Fragment() {
             .replace(R.id.nav_host_fragment, ChangePasswordFragment())
             .addToBackStack("profile")
             .commit()
-    }
-
-    private fun showLoginActivityMessage() {
-        Toast.makeText(requireContext(), "Login Activity - Feature coming soon", Toast.LENGTH_SHORT).show()
     }
 
     private fun showDeleteAccountConfirmation() {
@@ -258,18 +203,38 @@ class ProfileFragment : Fragment() {
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Logout")
             .setMessage("Are you sure you want to logout?")
-            .setPositiveButton("Logout") { _, _ ->
-                performLogout()
-            }
+            .setPositiveButton("Logout") { _, _ -> performLogout() }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
     private fun performLogout() {
-        auth.signOut()
-        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(requireContext(), LoginActivity::class.java))
-        requireActivity().finish()
+        val user = auth.currentUser
+        if (user != null) {
+            // Unsubscribe from user-specific topic
+            val topic = "user_${user.uid}"
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) Log.d("ProfileFragment", "✅ Unsubscribed from topic: $topic")
+                    else Log.d("ProfileFragment", "❌ Failed to unsubscribe from topic: $topic")
+                }
+
+            // Delete FCM token
+            FirebaseMessaging.getInstance().deleteToken()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) Log.d("ProfileFragment", "✅ FCM token deleted")
+                    else Log.d("ProfileFragment", "❌ Failed to delete FCM token")
+                }
+
+            // Sign out from FirebaseAuth
+            auth.signOut()
+            Log.d("ProfileFragment", "User signed out")
+
+            // Redirect to LoginActivity and clear back stack
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
     }
 
     private fun showLoading(show: Boolean) {
@@ -283,5 +248,11 @@ class ProfileFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    fun refreshData() {
+        Log.d("ProfileFragment", "Refreshing profile data...")
+        loadUserData()
+        Toast.makeText(requireContext(), "Profile data refreshed", Toast.LENGTH_SHORT).show()
     }
 }

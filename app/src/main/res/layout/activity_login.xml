@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true"
     android:padding="16dp">
 
@@ -27,7 +27,7 @@
                 android:layout_marginTop="80dp"
                 android:text="Welcome"
                 android:textSize="28sp"
-                android:textColor="@color/black"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium" />
 
@@ -36,8 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="Sign in to your Health Radar account"
                 android:textSize="16sp"
-                android:textColor="@color/black"
-                android:alpha="0.8"
+                android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginTop="4dp" />
 
         </LinearLayout>
@@ -49,24 +48,28 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:hint="Email Address"
-            android:textColorHint="@color/gray"
-            app:startIconDrawable="@android:drawable/ic_dialog_email"
-            app:startIconTint="@android:color/holo_blue_dark"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="@android:color/darker_gray"
-            app:boxBackgroundColor="@android:color/transparent"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            app:startIconDrawable="@drawable/ic_email"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="?android:attr/textColorSecondary"
+            app:boxStrokeColor="?android:attr/textColorTertiary"
+            app:startIconTint="?android:attr/textColorPrimary"
+            app:boxBackgroundColor="?android:attr/colorBackground"
+            app:endIconTint="?android:attr/textColorPrimary"
+            app:errorEnabled="true"
+            app:errorTextColor="@color/error_red">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/emailEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
+                android:textColor="?android:attr/textColorPrimary"
                 android:inputType="textEmailAddress"
-                android:textSize="16sp" />
+                android:textSize="14sp"
+                android:minHeight="44dp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -77,26 +80,29 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:hint="Password"
-            app:startIconDrawable="@android:drawable/ic_lock_lock"
-            app:startIconTint="@android:color/holo_blue_dark"
+            app:startIconDrawable="@drawable/ic_lock"
             app:endIconMode="password_toggle"
-            app:endIconTint="@android:color/holo_blue_dark"
-            app:boxCornerRadiusBottomEnd="12dp"
-            android:textColorHint="@color/gray"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxStrokeColor="@android:color/darker_gray"
-            app:boxBackgroundColor="@android:color/transparent"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusTopStart="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:hintTextColor="?android:attr/textColorSecondary"
+            app:boxStrokeColor="?android:attr/textColorTertiary"
+            app:startIconTint="?android:attr/textColorPrimary"
+            app:endIconTint="?android:attr/textColorPrimary"
+            app:boxBackgroundColor="?android:attr/colorBackground"
+            app:errorEnabled="true"
+            app:errorTextColor="@color/error_red">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/passwordEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="14sp"
+                android:minHeight="44dp" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -107,7 +113,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:text="Forgot Password?"
-            android:textColor="@color/colorPrimary"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="14sp"
             android:textStyle="bold"
             android:padding="8dp"
@@ -124,22 +130,24 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="24dp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:indeterminateTint="?android:attr/textColorPrimary" />
 
         <!-- Login Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/LoginButton"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="52dp"
             android:text="Sign In"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:backgroundTint="@android:color/holo_blue_dark"
-            app:cornerRadius="16dp"
-            app:icon="@android:drawable/ic_media_play"
+            app:cornerRadius="14dp"
             app:iconGravity="textEnd"
-            app:iconPadding="8dp"
-            android:layout_marginBottom="24dp" />
+            app:iconPadding="6dp"
+            android:layout_marginBottom="24dp"
+            app:backgroundTint="?android:attr/textColorPrimary"
+            android:textColor="?android:attr/colorBackground"
+            app:iconTint="?android:attr/colorBackground" />
 
         <!-- Sign Up Link -->
         <TextView
@@ -148,10 +156,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Don't have an account? Sign Up"
-            android:textSize="14sp"
-            android:textColor="@color/colorPrimary"
-            android:padding="16dp"
-            android:minHeight="48dp"
+            android:textSize="13sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:padding="12dp"
+            android:minHeight="44dp"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless" />
