@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 
 class NewsFragment : Fragment() {
@@ -33,8 +32,6 @@ class NewsFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var toolbar: MaterialToolbar
-    private var fabScrollToTop: FloatingActionButton? = null
     private var errorLayout: View? = null
 
     override fun onCreateView(
@@ -46,8 +43,6 @@ class NewsFragment : Fragment() {
         initializeViews(view)
         setupRecyclerView()
         setupSwipeRefresh()
-        setupFab()
-        setupToolbar()
         fetchNews()
 
         return view
@@ -57,8 +52,6 @@ class NewsFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recyclerViewNews)
         progressBar = view.findViewById(R.id.progressBar)
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
-        toolbar = view.findViewById(R.id.toolbar)
-        fabScrollToTop = view.findViewById(R.id.fabScrollToTop)
         errorLayout = view.findViewById(R.id.errorLayout)
         errorLayout?.let { errorView ->
             val retryButton = errorView.findViewById<TextView?>(R.id.buttonRetry)
@@ -72,18 +65,6 @@ class NewsFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                fabScrollToTop?.let { fab ->
-                    if (dy > 0 && fab.visibility == View.VISIBLE) {
-                        fab.hide()
-                    } else if (dy < 0 && fab.visibility != View.VISIBLE) {
-                        fab.show()
-                    }
-                }
-            }
-        })
     }
 
     private fun setupSwipeRefresh() {
@@ -98,28 +79,6 @@ class NewsFragment : Fragment() {
         )
         swipeRefreshLayout.setOnRefreshListener {
             fetchNews()
-        }
-    }
-
-    private fun setupFab() {
-        fabScrollToTop?.let { fab ->
-            fab.setColorFilter(ContextCompat.getColor(requireContext(), R.color.white))
-            fab.setOnClickListener {
-                recyclerView.smoothScrollToPosition(0)
-            }
-        }
-    }
-
-    private fun setupToolbar() {
-        toolbar.setTitleTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        toolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_refresh -> {
-                    fetchNews()
-                    true
-                }
-                else -> false
-            }
         }
     }
 

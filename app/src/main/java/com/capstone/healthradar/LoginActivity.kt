@@ -1,12 +1,15 @@
 package com.capstone.healthradar
 
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -14,16 +17,18 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var LoginButton: Button
     private lateinit var progressBar: ProgressBar
-    private lateinit var Register: TextView  // This must match XML ID
+    private lateinit var Register: TextView
+    private lateinit var tilEmail: TextInputLayout
+    private lateinit var tilPassword: TextInputLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
         auth = FirebaseAuth.getInstance()
         if (auth.currentUser != null) {
             startActivity(Intent(this, DashBoardActivity::class.java))
@@ -32,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         initializeViews()
+        setupOutlineColors() // ADD THIS LINE
         setupTextChangeListeners()
         setupClickListeners()
     }
@@ -42,10 +48,46 @@ class LoginActivity : AppCompatActivity() {
         LoginButton = findViewById(R.id.LoginButton)
         progressBar = findViewById(R.id.progressBar)
         Register = findViewById(R.id.Register)
+        tilEmail = findViewById(R.id.tilEmail) // ADD THIS
+        tilPassword = findViewById(R.id.tilPassword) // ADD THIS
+
         LoginButton.isEnabled = true
         if (Register == null) {
             Toast.makeText(this, "Register TextView not found!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // ADD THIS NEW FUNCTION - SIMPLIFIED VERSION
+    private fun setupOutlineColors() {
+        // Check if it's night mode
+        val isNightMode = resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+
+        // Set outline color based on mode
+        val outlineColor = if (isNightMode) {
+            Color.WHITE // White for night mode
+        } else {
+            Color.BLACK // Black for day mode
+        }
+
+        // Apply to text input layouts - SIMPLIFIED
+        tilEmail.boxStrokeColor = outlineColor
+        tilPassword.boxStrokeColor = outlineColor
+
+        // For focused state, you can set it to the same color or a different one
+        // Simple approach: set both default and focused to same color
+        tilEmail.setBoxStrokeColorStateList(
+            android.content.res.ColorStateList.valueOf(outlineColor)
+        )
+        tilPassword.setBoxStrokeColorStateList(
+            android.content.res.ColorStateList.valueOf(outlineColor)
+        )
+    }
+
+    // ADD THIS FUNCTION TO HANDLE THEME CHANGES
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setupOutlineColors() // Update colors when theme changes
     }
 
     private fun setupTextChangeListeners() {
@@ -66,7 +108,6 @@ class LoginActivity : AppCompatActivity() {
         Register.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
-
 
         LoginButton.setOnClickListener {
             if (validateFormWithMessages()) {

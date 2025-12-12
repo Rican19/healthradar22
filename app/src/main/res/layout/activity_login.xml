@@ -41,7 +41,7 @@
 
         </LinearLayout>
 
-        <!-- Email Input -->
+        <!-- Email Input - USING THEME ATTRIBUTE -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilEmail"
             android:layout_width="match_parent"
@@ -55,115 +55,103 @@
             app:boxCornerRadiusTopStart="8dp"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:hintTextColor="?android:attr/textColorSecondary"
-            app:boxStrokeColor="?android:attr/textColorTertiary"
-            app:startIconTint="?android:attr/textColorPrimary"
-            app:boxBackgroundColor="?android:attr/colorBackground"
-            app:endIconTint="?android:attr/textColorPrimary"
-            app:errorEnabled="true"
-            app:errorTextColor="@color/error_red">
+            app:boxStrokeColor="?android:attr/textColorPrimary"
+        app:startIconTint="?android:attr/textColorPrimary"
+        app:boxBackgroundColor="?android:attr/colorBackground"
+        app:endIconTint="?android:attr/textColorPrimary"
+        app:errorEnabled="true"
+        app:errorTextColor="@color/error_red"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="1dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/emailEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="?android:attr/textColorPrimary"
-                android:inputType="textEmailAddress"
-                android:textSize="14sp"
-                android:minHeight="44dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Password Input -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:hint="Password"
-            app:startIconDrawable="@drawable/ic_lock"
-            app:endIconMode="password_toggle"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:hintTextColor="?android:attr/textColorSecondary"
-            app:boxStrokeColor="?android:attr/textColorTertiary"
-            app:startIconTint="?android:attr/textColorPrimary"
-            app:endIconTint="?android:attr/textColorPrimary"
-            app:boxBackgroundColor="?android:attr/colorBackground"
-            app:errorEnabled="true"
-            app:errorTextColor="@color/error_red">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/passwordEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:textColor="?android:attr/textColorPrimary"
-                android:textSize="14sp"
-                android:minHeight="44dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Forgot Password -->
-        <TextView
-            android:id="@+id/tvForgotPassword"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:text="Forgot Password?"
             android:textColor="?android:attr/textColorPrimary"
+            android:inputType="textEmailAddress"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:padding="8dp"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:minHeight="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:minHeight="44dp" />
 
-        <!-- Progress Bar -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp"
-            android:visibility="gone"
-            android:indeterminateTint="?android:attr/textColorPrimary" />
+    </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Login Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/LoginButton"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="Sign In"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            app:cornerRadius="14dp"
-            app:iconGravity="textEnd"
-            app:iconPadding="6dp"
-            android:layout_marginBottom="24dp"
-            app:backgroundTint="?android:attr/textColorPrimary"
-            android:textColor="?android:attr/colorBackground"
-            app:iconTint="?android:attr/colorBackground" />
+    <!-- Password Input - USING THEME ATTRIBUTE -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:hint="Password"
+        app:startIconDrawable="@drawable/ic_lock"
+        app:endIconMode="password_toggle"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        app:hintTextColor="?android:attr/textColorSecondary"
+        app:boxStrokeColor="?android:attr/textColorPrimary"
+    app:startIconTint="?android:attr/textColorPrimary"
+    app:endIconTint="?android:attr/textColorPrimary"
+    app:boxBackgroundColor="?android:attr/colorBackground"
+    app:errorEnabled="true"
+    app:errorTextColor="@color/error_red"
+    app:boxStrokeWidth="1dp"
+    app:boxStrokeWidthFocused="1dp">
 
-        <!-- Sign Up Link -->
-        <TextView
-            android:id="@+id/Register"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Don't have an account? Sign Up"
-            android:textSize="13sp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:padding="12dp"
-            android:minHeight="44dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/passwordEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp"
+        android:minHeight="44dp" />
+
+</com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- Progress Bar -->
+<ProgressBar
+android:id="@+id/progressBar"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_gravity="center"
+android:layout_marginBottom="24dp"
+android:visibility="gone"
+android:indeterminateTint="?android:attr/textColorPrimary" />
+
+    <!-- Login Button -->
+<com.google.android.material.button.MaterialButton
+android:id="@+id/LoginButton"
+android:layout_width="match_parent"
+android:layout_height="52dp"
+android:text="Sign In"
+android:textSize="15sp"
+android:textStyle="bold"
+app:cornerRadius="14dp"
+app:iconGravity="textEnd"
+app:iconPadding="6dp"
+android:layout_marginBottom="24dp"
+app:backgroundTint="?android:attr/textColorPrimary"
+android:textColor="?android:attr/colorBackground"
+app:iconTint="?android:attr/colorBackground" />
+
+    <!-- Sign Up Link -->
+<TextView
+android:id="@+id/Register"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_gravity="center"
+android:text="Don't have an account? Sign Up"
+android:textSize="13sp"
+android:textColor="?android:attr/textColorPrimary"
+android:padding="12dp"
+android:minHeight="44dp"
+android:clickable="true"
+android:focusable="true"
+android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>
 
-</ScrollView>
+    </ScrollView>
