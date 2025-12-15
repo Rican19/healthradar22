@@ -62,7 +62,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- BAR CHART CARD -->
+        <!-- LINE CHART CARD -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -95,6 +95,18 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="?android:attr/textColorPrimary" />
+
+                    <!-- Comparison Toggle Button -->
+                    <Button
+                        android:id="@+id/comparisonToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Comparison: OFF"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:backgroundTint="#E0E0E0"
+                        android:textColor="@android:color/black" />
                 </LinearLayout>
 
                 <TextView
@@ -109,7 +121,7 @@
                     android:textStyle="bold"
                     android:textColor="?android:attr/textColorSecondary" />
 
-                <!-- Bar Chart Container -->
+                <!-- Line Chart Container -->
                 <LinearLayout
                     android:id="@+id/chartContainer"
                     android:layout_width="match_parent"
@@ -117,8 +129,8 @@
                     android:orientation="vertical"
                     android:layout_marginBottom="8dp">
 
-                    <!-- Bar Chart -->
-                    <com.github.mikephil.charting.charts.BarChart
+                    <!-- Line Chart -->
+                    <com.github.mikephil.charting.charts.LineChart
                         android:id="@+id/barChart"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
@@ -261,8 +273,7 @@
                         android:clickable="true"
                         android:focusable="true" />
 
-                    <!-- Title - CHANGED: Disease Breakdown to Disease List -->
-                    <!-- Title - CHANGED: Disease Breakdown to Disease List -->
+                    <!-- Title -->
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
